@@ -61,7 +61,7 @@ typedef struct
 /**********************
  *  STATIC VARIABLES
  **********************/
-static char *tab_title_list[] = {"Select Language", "Security Notice", "Choose Mnemonic Type", "Enter Mnemonic", "Enter PIN", ""};
+static char *tab_title_list[] = {"Language", "Security", "Mnemonic Type", "Enter Mnemonic", "Enter Passcode", ""};
 static lv_obj_t *screen = NULL;
 static lv_obj_t *tv = NULL;
 static uint32_t tab_index = 0;
@@ -337,7 +337,7 @@ static void init_tab_done(void)
     lv_obj_set_style_margin_all(label, 10, 0);
     lv_obj_set_size(label, container_width * 0.9, LV_SIZE_CONTENT);
     lv_label_set_long_mode(label, LV_LABEL_LONG_WRAP);
-    lv_label_set_text(label, "\n\n  Welcome to QR-Based Hardware Wallet!\n\n\n  Your account is successfully set up.");
+    lv_label_set_text(label, "\n\n  Welcome to QR Hardware Wallet!\n\n\n  Your account is successfully set up.");
     lv_obj_center(label);
 
     lv_obj_t *footer = lv_obj_create(cont);

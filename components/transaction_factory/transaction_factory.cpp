@@ -122,7 +122,7 @@ extern "C"
                 rlp_decode(rlp_encoded_ptr, rlp_encoded_len, &item);
                 if (item.type != RLP_ITEM_LIST)
                 {
-                    ESP_LOGE(TAG, "Invalid RLP encoded data");
+                    ESP_LOGE(TAG, "Invalid RLP encoded data 1");
                     transaction_data->error = 1;
                     return;
                 }
@@ -192,8 +192,8 @@ extern "C"
                     }
                     if (item.type == RLP_ITEM_NULL)
                     {
-                        ESP_LOGE(TAG, "Invalid RLP encoded data");
-                        transaction_data->error = 1;
+                        ESP_LOGE(TAG, "Invalid RLP encoded data 2 at index:%zu", i);
+                        transaction_data->error = 2;
                         return;
                     }
                     else if (item.type == RLP_ITEM_BYTES)
@@ -210,8 +210,8 @@ extern "C"
                     }
                     else
                     {
-                        ESP_LOGE(TAG, "Invalid RLP encoded data");
-                        transaction_data->error = 1;
+                        ESP_LOGE(TAG, "Invalid RLP encoded data 3");
+                        transaction_data->error = 3;
                         return;
                     }
                 }

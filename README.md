@@ -1,5 +1,5 @@
 
-# QR-Base Hardware Wallet
+# QR Hardware Wallet
 
 ### Build a truly usable Hardware Wallet for Under $20
 
@@ -12,8 +12,6 @@ The goal of this project is to provide a low-cost, easy-to-build hardware wallet
 
 The current development is based on the [**ESP32-S3 MCU**](https://www.espressif.com/en/products/socs/esp32-s3), which has enough processing power to handle real-time QR code scanning, making it ideal for a QR-based wallet client.
 
-
-
 - MCU
 
   | MCU      | Support | Test |
@@ -21,7 +19,7 @@ The current development is based on the [**ESP32-S3 MCU**](https://www.espressif
   | ESP32-S3 | ✅       | ✅    |
   | ESP32-S2 | ✅       |      |
 
-  
+  - *Specification*: Must have PSRAM and at least 8MB flash.
 
 - Camera
 
@@ -29,18 +27,37 @@ The current development is based on the [**ESP32-S3 MCU**](https://www.espressif
   | ------ | ------- | ---- |
   | OV2640 | ✅       | ✅    |
   | OV3660 | ✅       |      |
-  | GC0308 |         |      |
-
-  
+  | GC0308 | ✅        |      |
+  | GC032A | ✅        |      |
 
 - Screen
 
-  | Screen | Support | Test |
-  | ------ | ------- | ---- |
-  | Capacitive touchscreen with ILI9341 driver    |         |      |
+  | Screen            | Support | Test |
+  | ----------------- | ------- | ---- |
+  | >=`240(W)*320(H)` | ✅       | ✅    |
 
+  - LCD
   
-
+    - | LCD     | Support | Test |
+      | ------- | ------- | ---- |
+      | ST7735  | ✅       |      |
+      | ST7789  | ✅       | ✅    |
+      | ST7796  | ✅       |      |
+      | ILI9341 | ✅       |      |
+      | GC9A01  | ✅       |      |
+      |         |         |      |
+  
+  - Touch Panel
+  
+    - | TOUCH   | Support | Test |
+      | ------- | ------- | ---- |
+      | CST816S | ✅       |      |
+      | FT5X06  | ✅       | ✅    |
+      | FT6X36  | ✅       | ✅    |
+      | GT1151  | ✅       |      |
+      | GT911   | ✅       |      |
+      | TT21100 | ✅       |      |
+  
 ## Project Progress
 
 - [ ] Custom Bootloader
@@ -48,7 +65,7 @@ The current development is based on the [**ESP32-S3 MCU**](https://www.espressif
 - [x] Multi qr-code input
 
 - **Ethereum Support** (EVM chains)
-  - MetaMask Wallet
+  - Feature
     - [ ] Legacy Transactions
     - [ ] Access List Transactions (EIP-2930)
     - [x] Fee Market Transactions (EIP-1559)
@@ -58,13 +75,22 @@ The current development is based on the [**ESP32-S3 MCU**](https://www.espressif
     - [ ] Sign Typed Data V3
     - [ ] Sign Typed Data V4
     - [ ] Sign Permit
-  - [ ] AirGap Wallet
-    - [ ] TBD
+  - Wallet
+    - [x] MetaMask
+    - [x] imToken
+    - [x] Rabby
 
 - **Bitcoin Support**
+  
   - [ ] Bitcoin (SegWit)
-    - [ ] AirGap Wallet
-    - [ ] BlueWallet
+
+## Feature Showcase
+
+<div style="display: flex; flex-wrap: wrap; width: 100%">
+<img src="docs/images/connect-to-metamask.gif" alt="connect to metamask" style="width: 400px;height: 346px;">
+<img src="docs/images/sign-transaction-metamask.gif" alt="sign transaction metamask" style="width: 400px;height: 349px;">
+<img src="docs/images/enter-mnemonic.gif" alt="enter mnemonic" style="width: 400px;height: 599px;">
+</div>
 
 ## How to Build
 

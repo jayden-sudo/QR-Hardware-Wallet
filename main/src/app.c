@@ -49,7 +49,7 @@ void app_main(void);
  **********************/
 void app_main(void)
 {
-    printf("QR-Base Wallet\n");
+    printf("QR Hardware Wallet\n");
     /* Print chip information */
     esp_chip_info_t chip_info;
     uint32_t flash_size;
