@@ -1,10 +1,13 @@
 
 # QR Hardware Wallet
 
-### Build a truly usable Hardware Wallet for Under $20
 
-**Welcome to the QR-Base Hardware Wallet Project!**  
-The goal of this project is to provide a low-cost, easy-to-build hardware wallet that uses QR codes for secure transactions. With price under $20, we aim to make secure digital asset management accessible to everyone.
+
+### Build your own hardware wallet using affordable, globally available hardware!
+
+The goal of this project is to provide an ***affordable***, ***<u>easy-to-build</u>*** hardware wallet that uses QR code for secure transaction. Our aim is to enable everyone to manage digital assets safely.
+
+
 
 ## Hardware Supported
 
@@ -89,6 +92,7 @@ The current development is based on the [**ESP32-S3 MCU**](https://www.espressif
 <img src="docs/images/sign-transaction-metamask.gif" alt="sign transaction metamask" style="width: 400px;height: 349px;">
 <img src="docs/images/enter-mnemonic.gif" alt="enter mnemonic" style="width: 400px;height: 599px;">
 </div>
+*Hardware:ESP_S3_EYE-compatible dev board ($6), OV3660-compatible camera ($2), second-hand capacitive touchscreen (240x320, ST7789+FT6X36, $7)*
 
 ## How to Build
 
