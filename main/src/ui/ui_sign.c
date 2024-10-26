@@ -126,17 +126,25 @@ void ui_sign_init(void)
             lv_obj_set_grid_cell(qr, LV_GRID_ALIGN_STRETCH, 0, 1,
                                  LV_GRID_ALIGN_STRETCH, 1, 1);
 
+            lv_obj_set_style_pad_all(qr, 0, 0);
+            lv_obj_set_style_margin_all(qr, 0, 0);
             lv_obj_t *qr_canvas = lv_canvas_create(qr);
+            lv_obj_set_style_border_width(qr_canvas, 0, 0);
+            lv_obj_set_style_radius(qr_canvas, 0, 0);
+            lv_obj_set_style_outline_width(qr_canvas, 0, 0);
+            lv_obj_set_style_pad_all(qr_canvas, 0, 0);
+            lv_obj_set_style_margin_all(qr_canvas, 0, 0);
             lv_obj_center(qr_canvas);
 
             char *signature = ctrl_sign_get_signature();
             if (signature == NULL)
             {
-                ui_toast_show(current_page, "Failed to get signature.");
+                ui_toast_show("Failed to get signature.", 2000);
             }
             else
             {
-                ui_qr_code_show(qr_canvas, parent_width > qr_height ? qr_height : parent_width, signature, false);
+                ESP_LOGI(TAG, "signature: %s", signature);
+                ui_qr_code_init("Signature", "", signature, "Scan this QR code to send the transaction.");
             }
         }
         lvgl_port_unlock();

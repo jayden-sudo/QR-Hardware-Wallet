@@ -1,16 +1,18 @@
 /*********************
  *      INCLUDES
  *********************/
-#include "ui/ui_pin_input_page.h"
+#include "ui/ui_pin.h"
 #include "ui/ui_events.h"
 #include "alloc_utils.h"
 #include <string.h>
 #include "esp_log.h"
+#include "wallet_db.h"
 
 /*********************
  *      DEFINES
  *********************/
-#define TAG "ui_pin_input_page"
+#define TAG "UI_PIN"
+
 /**********************
  *  STATIC VARIABLES
  **********************/
@@ -21,6 +23,10 @@ static const char *btnm_map[] = {"1", "2", "3", "\n",
 
 static alloc_utils_memory_struct *alloc_utils_memory_struct_pointer;
 static lv_obj_t *parent;
+static size_t parent_width;
+static size_t parent_height;
+static lv_obj_t *event_target;
+
 static lv_obj_t *current_page;
 static lv_obj_t *lv_msg;
 static lv_obj_t **leds;
@@ -49,17 +55,16 @@ static void set_msg(char *msg, bool is_error);
 static void set_error_msg(char *msg);
 static void set_fixed_msg(char *msg);
 static void load_fixed_msg();
-static void create_pin_input_page(lv_obj_t *lv_parent, bool show_close_btn);
-static void close_event_handler(lv_event_t *e);
+static void create_pin_input_page(void);
 static void pin_input_event_handler(lv_event_t *e);
-static void pin_input_event_handler(lv_event_t *e);
-static void free_current_page();
+static void send_pin_confirm_event(void);
 
 /**********************
  * GLOBAL PROTOTYPES
  **********************/
-void ui_create_pin_input_page_set(lv_obj_t *lv_parent, bool show_close_btn);
-void ui_create_pin_input_page_verify(lv_obj_t *lv_parent, bool show_close_btn, char *error_msg, verify_function verify_fun);
+void ui_pin_set(lv_obj_t *lv_parent, size_t lv_parent_width, size_t lv_parent_height, lv_obj_t *event_target);
+void ui_pin_verify(lv_obj_t *lv_parent, size_t lv_parent_width, size_t lv_parent_height, lv_obj_t *event_target, verify_function verify_fun);
+void ui_pin_free(void);
 
 /**********************
  *   STATIC FUNCTIONS
@@ -132,14 +137,28 @@ static void load_fixed_msg()
         set_msg("", false);
     }
 }
-static void create_pin_input_page(lv_obj_t *lv_parent, bool show_close_btn)
+static void send_pin_confirm_event()
+{
+    char *pin_str = NULL;
+    if (pin[0] != '\0')
+    {
+        pin_str = malloc(sizeof(char) * 7);
+        sprintf(pin_str, "%s", pin);
+
+        lv_result_t re = lv_obj_send_event(event_target == NULL ? parent : event_target, UI_EVENT_PIN_CONFIRM, (void *)pin_str);
+        if (re == LV_RESULT_INVALID)
+        {
+            printf("lv_obj_send_event failed\n");
+            free(pin_str);
+        }
+    }
+}
+static void create_pin_input_page()
 {
 
     /*
         UI:
             ┌─────────────────┐
-            │  header         │
-            ├─────────────────┤
             │     msg         │
             ├─────────────────┤
             │   ┌─┐┌─┐┌─┐┌─┐  │
@@ -152,13 +171,6 @@ static void create_pin_input_page(lv_obj_t *lv_parent, bool show_close_btn)
     memset(pin, 0, sizeof(pin));
     memset(pin_tmp, 0, sizeof(pin_tmp));
 
-    parent = lv_parent;
-
-    /* get parent size */
-    int parent_width = lv_obj_get_width(parent);
-    int parent_height = lv_obj_get_height(parent);
-
-    int header_height = parent_height * 0.08;
     int msg_height = parent_height * 0.15;
     int keyboard_height = parent_height * 0.62;
 
@@ -168,12 +180,11 @@ static void create_pin_input_page(lv_obj_t *lv_parent, bool show_close_btn)
     col_dsc[1] = LV_GRID_TEMPLATE_LAST;
 
     int32_t *row_dsc;
-    ALLOC_UTILS_MALLOC_MEMORY(alloc_utils_memory_struct_pointer, row_dsc, sizeof(int32_t) * 5);
-    row_dsc[0] = header_height;
+    ALLOC_UTILS_MALLOC_MEMORY(alloc_utils_memory_struct_pointer, row_dsc, sizeof(int32_t) * 4);
+    row_dsc[0] = msg_height;
     row_dsc[1] = LV_GRID_FR(1);
-    row_dsc[2] = msg_height;
-    row_dsc[3] = keyboard_height;
-    row_dsc[4] = LV_GRID_TEMPLATE_LAST;
+    row_dsc[2] = keyboard_height;
+    row_dsc[3] = LV_GRID_TEMPLATE_LAST;
 
     current_page = lv_obj_create(parent);
     lv_obj_set_scroll_dir(current_page, LV_DIR_NONE);
@@ -185,25 +196,14 @@ static void create_pin_input_page(lv_obj_t *lv_parent, bool show_close_btn)
     lv_obj_set_style_outline_width(current_page, 0, 0);
     lv_obj_set_style_radius(current_page, 0, 0);
     lv_obj_set_style_pad_all(current_page, 0, 0);
-
-    /* header */
-    if (show_close_btn)
-    {
-        lv_obj_t *header = lv_button_create(current_page);
-        lv_obj_t *close_lab = lv_label_create(header);
-        lv_label_set_text(close_lab, LV_SYMBOL_CLOSE);
-        lv_obj_add_event_cb(header, close_event_handler, LV_EVENT_CLICKED, NULL);
-        lv_obj_align(close_lab, LV_ALIGN_RIGHT_MID, 0, 0);
-        lv_obj_set_grid_cell(header, LV_GRID_ALIGN_END, 0, 1,
-                             LV_GRID_ALIGN_CENTER, 0, 1);
-    }
+    lv_obj_set_style_border_width(current_page, 0, 0);
 
     /* msg */
     lv_msg = lv_label_create(current_page);
     lv_obj_set_size(lv_msg, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
     lv_obj_align(lv_msg, LV_ALIGN_CENTER, 0, 0);
     lv_obj_set_grid_cell(lv_msg, LV_GRID_ALIGN_CENTER, 0, 1,
-                         LV_GRID_ALIGN_CENTER, 1, 1);
+                         LV_GRID_ALIGN_CENTER, 0, 1);
 
     /* input circles */
     int32_t *col_circle_dsc;
@@ -258,7 +258,7 @@ static void create_pin_input_page(lv_obj_t *lv_parent, bool show_close_btn)
 
     lv_obj_align(input_circles, LV_ALIGN_CENTER, 0, 0);
     lv_obj_set_grid_cell(input_circles, LV_GRID_ALIGN_STRETCH, 0, 1,
-                         LV_GRID_ALIGN_STRETCH, 2, 1);
+                         LV_GRID_ALIGN_STRETCH, 1, 1);
 
     /* keyboard */
     lv_obj_t *btnm = lv_buttonmatrix_create(current_page);
@@ -274,14 +274,9 @@ static void create_pin_input_page(lv_obj_t *lv_parent, bool show_close_btn)
     lv_buttonmatrix_set_button_ctrl(btnm, 9, LV_BUTTONMATRIX_CTRL_HIDDEN);
     lv_obj_align(btnm, LV_ALIGN_CENTER, 0, 0);
     lv_obj_set_grid_cell(btnm, LV_GRID_ALIGN_STRETCH, 0, 1,
-                         LV_GRID_ALIGN_STRETCH, 3, 1);
+                         LV_GRID_ALIGN_STRETCH, 2, 1);
 
     lv_obj_add_event_cb(btnm, pin_input_event_handler, LV_EVENT_CLICKED, NULL);
-}
-static void close_event_handler(lv_event_t *e)
-{
-    pin[0] = '\0';
-    free_current_page();
 }
 static void pin_input_event_handler(lv_event_t *e)
 {
@@ -335,7 +330,7 @@ static void pin_input_event_handler(lv_event_t *e)
                 {
                     if (strcmp(pin, pin_tmp) == 0)
                     {
-                        free_current_page();
+                        send_pin_confirm_event();
                         return;
                     }
                     else
@@ -350,7 +345,7 @@ static void pin_input_event_handler(lv_event_t *e)
                     char *result = verify_pin(pin);
                     if (result == NULL)
                     {
-                        free_current_page();
+                        ui_pin_free();
                         return;
                     }
                     else
@@ -371,15 +366,59 @@ static void pin_input_event_handler(lv_event_t *e)
         set_led(strlen(pin));
     }
 }
-static void free_current_page()
-{
-    char *pin_str = NULL;
-    if (pin[0] != '\0')
-    {
-        pin_str = malloc(sizeof(char) * 7);
-        sprintf(pin_str, "%s", pin);
-    }
 
+/**********************
+ *   GLOBAL FUNCTIONS
+ **********************/
+void ui_pin_set(lv_obj_t *lv_parent, size_t lv_parent_width, size_t lv_parent_height, lv_obj_t *_event_target)
+{
+    if (lvgl_port_lock(0))
+    {
+        ALLOC_UTILS_INIT_MEMORY_STRUCT(alloc_utils_memory_struct_pointer);
+
+        pin_step = 0;
+
+        parent = lv_parent;
+        parent_width = lv_parent_width;
+        parent_height = lv_parent_height;
+        event_target = _event_target;
+
+        create_pin_input_page();
+        set_fixed_msg(MSG_ENTER_NEW_PIN);
+
+        lvgl_port_unlock();
+    }
+}
+void ui_pin_verify(lv_obj_t *lv_parent, size_t lv_parent_width, size_t lv_parent_height, lv_obj_t *_event_target, verify_function verify_fun)
+{
+    if (lvgl_port_lock(0))
+    {
+        ALLOC_UTILS_INIT_MEMORY_STRUCT(alloc_utils_memory_struct_pointer);
+        pin_step = 2;
+        verify_pin = verify_fun;
+        parent = lv_parent;
+        parent_width = lv_parent_width;
+        parent_height = lv_parent_height;
+        event_target = _event_target;
+
+        create_pin_input_page();
+
+        set_fixed_msg(MSG_VERIFY_PIN);
+        char *error_msg = wallet_db_passcode_static_error_msg();
+        if (error_msg != NULL)
+        {
+            char *_msg = NULL;
+            ALLOC_UTILS_MALLOC_MEMORY(alloc_utils_memory_struct_pointer, _msg, sizeof(char) * (strlen(error_msg) + 1));
+            sprintf(_msg, "%s", error_msg);
+            set_error_msg(_msg);
+        }
+
+        lvgl_port_unlock();
+    }
+}
+void ui_pin_free(void)
+{
+    if (current_page != NULL)
     {
         if (lvgl_port_lock(0))
         {
@@ -392,55 +431,5 @@ static void free_current_page()
         current_page = NULL;
         lv_msg = NULL;
         leds = NULL;
-    }
-
-    lv_result_t re = lv_obj_send_event(parent,
-                                       pin_str == NULL ? UI_EVENT_PIN_CANCEL : UI_EVENT_PIN_CONFIRM,
-                                       (void *)pin_str);
-    if (re == LV_RESULT_INVALID)
-    {
-        printf("lv_obj_send_event failed\n");
-        free(pin_str);
-    }
-}
-
-/**********************
- *   GLOBAL FUNCTIONS
- **********************/
-void ui_create_pin_input_page_set(lv_obj_t *lv_parent, bool show_close_btn)
-{
-    if (lvgl_port_lock(0))
-    {
-        ALLOC_UTILS_INIT_MEMORY_STRUCT(alloc_utils_memory_struct_pointer);
-
-        pin_step = 0;
-        create_pin_input_page(lv_parent, show_close_btn);
-        set_fixed_msg(MSG_ENTER_NEW_PIN);
-
-        lvgl_port_unlock();
-    }
-}
-void ui_create_pin_input_page_verify(lv_obj_t *lv_parent, bool show_close_btn, char *error_msg, verify_function verify_fun)
-{
-    if (lvgl_port_lock(0))
-    {
-
-        ALLOC_UTILS_INIT_MEMORY_STRUCT(alloc_utils_memory_struct_pointer);
-
-        pin_step = 2;
-        verify_pin = verify_fun;
-
-        create_pin_input_page(lv_parent, show_close_btn);
-
-        set_fixed_msg(MSG_VERIFY_PIN);
-        if (error_msg != NULL)
-        {
-            char *_msg = NULL;
-            ALLOC_UTILS_MALLOC_MEMORY(alloc_utils_memory_struct_pointer, _msg, sizeof(char) * (strlen(error_msg) + 1));
-            sprintf(_msg, "%s", error_msg);
-            set_error_msg(_msg);
-        }
-
-        lvgl_port_unlock();
     }
 }

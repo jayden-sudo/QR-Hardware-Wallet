@@ -7,15 +7,21 @@
 #include <string.h>
 #include "esp_littlefs.h"
 #include <unistd.h>
+#include <dirent.h>
 #include <sys/stat.h>
+
+/*********************
+ *      DEFINES
+ *********************/
+#define BASE_PATH "/wallet"
 
 /**********************
  *      VARIABLES
  **********************/
 const char *TAG = "KV_FS";
 const esp_vfs_littlefs_conf_t conf = {
-    .base_path = "/littlefs",
-    .partition_label = "littlefs",
+    .base_path = BASE_PATH,
+    .partition_label = "wallet",
     .format_if_mount_failed = true,
     .dont_mount = false,
 };
@@ -32,6 +38,7 @@ static int unmount_littlefs(void);
 int kv_save(const char *key, const char *hex, size_t len);
 int kv_load(const char *key, char **hex, size_t *len);
 int kv_delete(const char *key);
+int kv_erase(void);
 
 /**********************
  *   STATIC FUNCTIONS
@@ -78,10 +85,10 @@ int kv_save(const char *key, const char *hex, size_t len)
         return ESP_FAIL;
     }
 
-    size_t size = strlen(key) + 15 /* strlen("/littlefs/") */;
+    size_t size = strlen(key) + 10 /* strlen("/wallet/") */;
     char *path = malloc(size);
 
-    sprintf(path, "/littlefs/%s", key);
+    sprintf(path, "%s/%s", BASE_PATH, key);
     FILE *f = fopen(path, "wb");
     if (f == NULL)
     {
@@ -94,7 +101,6 @@ int kv_save(const char *key, const char *hex, size_t len)
     unmount_littlefs();
     return ESP_OK;
 }
-
 int kv_load(const char *key, char **hex, size_t *len)
 {
     if (mount_littlefs() != ESP_OK)
@@ -102,10 +108,10 @@ int kv_load(const char *key, char **hex, size_t *len)
         return ESP_FAIL;
     }
 
-    size_t size = strlen(key) + 15 /* strlen("/littlefs/") */;
+    size_t size = strlen(key) + 10 /* strlen("/wallet/") */;
     char *path = malloc(size);
 
-    sprintf(path, "/littlefs/%s", key);
+    sprintf(path, "%s/%s", BASE_PATH, key);
 
     struct stat st;
     if (stat(path, &st) == 0)
@@ -141,7 +147,6 @@ done:
     unmount_littlefs();
     return ESP_OK;
 }
-
 int kv_delete(const char *key)
 {
     if (mount_littlefs() != ESP_OK)
@@ -149,10 +154,10 @@ int kv_delete(const char *key)
         return ESP_FAIL;
     }
 
-    size_t size = strlen(key) + 15 /* strlen("/littlefs/") */;
+    size_t size = strlen(key) + 10 /* strlen("/wallet/") */;
     char *path = malloc(size);
 
-    sprintf(path, "/littlefs/%s", key);
+    sprintf(path, "%s/%s", BASE_PATH, key);
     struct stat st;
     if (stat(path, &st) == 0)
     {
@@ -177,5 +182,37 @@ int kv_delete(const char *key)
     }
     free(path);
     unmount_littlefs();
+    return ESP_OK;
+}
+int kv_erase(void)
+{
+    esp_err_t ret = esp_littlefs_format(conf.partition_label);
+    if (ret != ESP_OK)
+    {
+        ESP_LOGE(TAG, "Failed to format LittleFS<1> (%s)", esp_err_to_name(ret));
+        return ESP_FAIL;
+    }
+    ESP_LOGI(TAG, "format success<1>");
+    /*
+        wallet, data, spiffs,         , 128K
+     */
+    size_t max_size = 128 * 1024 - 9 * 1024;
+    char *fill = malloc(max_size);
+    memset(fill, 0, max_size);
+    ret = kv_save("fill", fill, max_size);
+    free(fill);
+    if (ret != ESP_OK)
+    {
+        ESP_LOGE(TAG, "Failed to save fill");
+        return ESP_FAIL;
+    }
+    ESP_LOGI(TAG, "save fill success");
+    ret = esp_littlefs_format(conf.partition_label);
+    if (ret != ESP_OK)
+    {
+        ESP_LOGE(TAG, "Failed to format LittleFS<2> (%s)", esp_err_to_name(ret));
+        return ESP_FAIL;
+    }
+    ESP_LOGI(TAG, "format success<2>");
     return ESP_OK;
 }

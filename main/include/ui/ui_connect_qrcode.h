@@ -1,24 +1,24 @@
-#ifndef UI_QR_CODE_H
-#define UI_QR_CODE_H
+#ifndef UI_CONNECT_QRCODE_H
+#define UI_CONNECT_QRCODE_H
 
 /*********************
  *      INCLUDES
  *********************/
-#include <stdint.h>
-#include <stdio.h>
+#include "controller/ctrl_home.h"
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
+
     /**********************
      * GLOBAL PROTOTYPES
      **********************/
-    void ui_qr_code_init(char *title, char *text_pre, char *qr_code, char *text_post);
+    void ui_connect_qrcode(ctrl_home_network_data_t *network_data);
 
 #ifdef __cplusplus
     extern "C"
 }
 #endif
 
-#endif /* UI_QR_CODE_H */
+#endif /* UI_CONNECT_QRCODE_H */

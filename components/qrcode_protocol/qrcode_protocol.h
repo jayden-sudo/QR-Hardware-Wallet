@@ -33,7 +33,7 @@ extern "C"
     typedef void *UR;
     typedef void *URDecoder;
 
-    typedef struct __attribute__((aligned(4))) _MetamaskSignRequest
+    typedef struct __attribute__((aligned(4)))
     {
         char *uuid_base64url;
         char *sign_data_base64url;
@@ -41,7 +41,7 @@ extern "C"
         uint64_t chain_id;
         char *derivation_path;
         char *address;
-    } MetamaskSignRequest;
+    } metamask_sign_request_t;
 
     typedef enum
     {
@@ -62,8 +62,8 @@ extern "C"
      **********************/
     void generate_metamask_crypto_hdkey(Wallet *wallet, char **output);
     void generate_metamask_eth_signature(uint8_t *uuid_str, uint8_t signature[65], char **output);
-    int decode_metamask_sign_request(UR ur, MetamaskSignRequest *request);
-    void free_metamask_sign_request(MetamaskSignRequest *request);
+    int decode_metamask_sign_request(UR ur, metamask_sign_request_t *request);
+    void free_metamask_sign_request(metamask_sign_request_t *request);
 
     URType ur_type(const char *url);
     void qrcode_protocol_bc_ur_init(qrcode_protocol_bc_ur_data_t *data);

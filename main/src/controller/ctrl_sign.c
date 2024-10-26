@@ -50,7 +50,7 @@ char *ctrl_sign_get_signature(void)
     ESP_LOGI(TAG, "type: %s", type);
     if (strcmp(type, METAMASK_ETH_SIGN_REQUEST) == 0)
     {
-        MetamaskSignRequest request;
+        metamask_sign_request_t request;
         int err = decode_metamask_sign_request(qrcode_protocol_bc_ur_data->ur, &request);
         ESP_LOGI(TAG, "decode_metamask_sign_request err: %d", err);
         if (err == 0)
@@ -75,7 +75,7 @@ char *ctrl_sign_get_signature(void)
             if (request.data_type == KEY_DATA_TYPE_SIGN_TYPED_TRANSACTION)
             {
                 ESP_LOGI(TAG, "sign typed transaction");
-                TransactionData *transaction_data = (TransactionData *)malloc(sizeof(TransactionData));
+                transaction_data_t *transaction_data = (transaction_data_t *)malloc(sizeof(transaction_data_t));
                 transaction_factory_init(transaction_data, sign_data, sign_data_len);
 
                 if (transaction_data->error == 0)

@@ -50,14 +50,14 @@ extern "C"
         size_t dataLen;
         uint8_t *accessList;
         size_t accessListLen;
-    } TransactionData;
+    } transaction_data_t;
 
     /**********************
      * GLOBAL PROTOTYPES
      **********************/
-    void transaction_factory_init(TransactionData *transaction_data, const uint8_t *sign_data, size_t sign_data_len);
-    void transaction_factory_free(TransactionData *transaction_data);
-    char *transaction_factory_to_string(TransactionData *transaction_data);
+    void transaction_factory_init(transaction_data_t *transaction_data, const uint8_t *sign_data, size_t sign_data_len);
+    void transaction_factory_free(transaction_data_t *transaction_data);
+    char *transaction_factory_to_string(transaction_data_t *transaction_data);
 
 #ifdef __cplusplus
 }

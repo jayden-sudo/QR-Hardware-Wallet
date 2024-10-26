@@ -1,5 +1,5 @@
-#ifndef CTRL_ONBOARD_H
-#define CTRL_ONBOARD_H
+#ifndef UI_ERASE_H
+#define UI_ERASE_H
 
 /*********************
  *      INCLUDES
@@ -14,10 +14,11 @@ extern "C"
     /**********************
      * GLOBAL PROTOTYPES
      **********************/
-    void ctrl_onboard(char **privateKeyStr, char **pinStr);
+    void ui_erase(void);
 
 #ifdef __cplusplus
+    extern "C"
 }
 #endif
 
-#endif /* CTRL_ONBOARD_H */
+#endif /* UI_ERASE_H */

@@ -1,5 +1,5 @@
-#ifndef UI_PIN_INPUT_PAGE_H
-#define UI_PIN_INPUT_PAGE_H
+#ifndef UI_PIN_H
+#define UI_PIN_H
 
 /*********************
  *      INCLUDES
@@ -19,12 +19,13 @@ extern "C"
     /**********************
      * GLOBAL PROTOTYPES
      **********************/
-    void ui_create_pin_input_page_set(lv_obj_t *lv_parent, bool show_close_btn);
-    void ui_create_pin_input_page_verify(lv_obj_t *lv_parent, bool show_close_btn, char *error_msg, verify_function verify_fun);
+    void ui_pin_set(lv_obj_t *lv_parent, size_t lv_parent_width, size_t lv_parent_height, lv_obj_t *event_target);
+    void ui_pin_verify(lv_obj_t *lv_parent, size_t lv_parent_width, size_t lv_parent_height, lv_obj_t *event_target, verify_function verify_fun);
+    void ui_pin_free(void);
 
 #ifdef __cplusplus
     extern "C"
 }
 #endif
 
-#endif /* UI_PIN_INPUT_PAGE_H */
+#endif /* UI_PIN_H */

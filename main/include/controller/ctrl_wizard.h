@@ -1,10 +1,11 @@
-#ifndef UI_HOME_H
-#define UI_HOME_H
+#ifndef CTRL_WIZARD_H
+#define CTRL_WIZARD_H
 
 /*********************
  *      INCLUDES
  *********************/
 #include "esp_lvgl_port.h"
+#include "wallet.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -14,14 +15,12 @@ extern "C"
     /**********************
      * GLOBAL PROTOTYPES
      **********************/
-    void ui_home(int *_flag);
-    void ui_home_free(void);
-    void ui_home_start_qr_scan(void);
-    void ui_home_stop_qr_scan(void);
+    void ctrl_wizard(char **privateKeyStr);
+    void ctrl_wizard_free();
+    void ctrl_wizard_set_private_key(char *private_key_str);
 
 #ifdef __cplusplus
-    extern "C"
 }
 #endif
 
-#endif /* UI_HOME_H */
+#endif /* CTRL_WIZARD_H */

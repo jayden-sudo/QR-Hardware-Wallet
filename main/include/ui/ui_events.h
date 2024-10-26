@@ -20,6 +20,8 @@ extern "C"
     extern uint32_t UI_EVENT_PHRASE_CANCEL;
     extern uint32_t UI_EVENT_PIN_CONFIRM;
     extern uint32_t UI_EVENT_PIN_CANCEL;
+    extern uint32_t UI_EVENT_MASTER_PAGE_BACK_BUTTON_CLICKED;
+    extern uint32_t UI_EVENT_MASTER_PAGE_CLOSE_BUTTON_CLICKED;
 
     /**********************
      * GLOBAL PROTOTYPES

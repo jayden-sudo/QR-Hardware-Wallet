@@ -1,10 +1,18 @@
-#ifndef UI_HOME_H
-#define UI_HOME_H
+#ifndef UI_PANIC_H
+#define UI_PANIC_H
 
 /*********************
  *      INCLUDES
  *********************/
 #include "esp_lvgl_port.h"
+
+/**********************
+ *      TYPEDEFS
+ **********************/
+typedef enum
+{
+    PANIC_REBOOT = 0
+} panic_action_t;
 
 #ifdef __cplusplus
 extern "C"
@@ -14,14 +22,10 @@ extern "C"
     /**********************
      * GLOBAL PROTOTYPES
      **********************/
-    void ui_home(int *_flag);
-    void ui_home_free(void);
-    void ui_home_start_qr_scan(void);
-    void ui_home_stop_qr_scan(void);
+    void ui_panic(const char *message, panic_action_t action);
 
 #ifdef __cplusplus
-    extern "C"
 }
 #endif
 
-#endif /* UI_HOME_H */
+#endif /* UI_TOAST_H */

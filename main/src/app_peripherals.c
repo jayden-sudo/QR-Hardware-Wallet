@@ -31,6 +31,8 @@
 #include "esp_lcd_touch_cst816s.h"
 #elif CONFIG_TOUCH_FT5X06
 #include "esp_lcd_touch_ft5x06.h"
+#elif CONFIG_TOUCH_FT6X36
+#include "esp_lcd_touch_ft5x06.h"
 #elif CONFIG_TOUCH_GT1151
 #include "esp_lcd_touch_gt1151.h"
 #elif CONFIG_TOUCH_GT911
@@ -207,24 +209,24 @@
 #define CAMERA_PIN_PCLK 22
 
 #elif CONFIG_CAMERA_MODULE_CUSTOM
-#define CAMERA_MODULE_NAME "CUSTOM"
-#define CAMERA_PIN_PWDN CONFIG_CAMERA_PIN_PWDN
-#define CAMERA_PIN_RESET CONFIG_CAMERA_PIN_RESET
-#define CAMERA_PIN_XCLK CONFIG_CAMERA_PIN_XCLK
-#define CAMERA_PIN_SIOD CONFIG_CAMERA_PIN_SIOD
-#define CAMERA_PIN_SIOC CONFIG_CAMERA_PIN_SIOC
+#define CAMERA_MODULE_NAME CAMERA_MODULE_CUSTOM_NAME
+#define CAMERA_PIN_PWDN CAMERA_MODULE_CUSTOM_PIN_PWDN
+#define CAMERA_PIN_RESET CAMERA_MODULE_CUSTOM_PIN_RESET
+#define CAMERA_PIN_XCLK CAMERA_MODULE_CUSTOM_PIN_XCLK
+#define CAMERA_PIN_SIOD CAMERA_MODULE_CUSTOM_PIN_SIOD
+#define CAMERA_PIN_SIOC CAMERA_MODULE_CUSTOM_PIN_SIOC
 
-#define CAMERA_PIN_D7 CONFIG_CAMERA_PIN_Y9
-#define CAMERA_PIN_D6 CONFIG_CAMERA_PIN_Y8
-#define CAMERA_PIN_D5 CONFIG_CAMERA_PIN_Y7
-#define CAMERA_PIN_D4 CONFIG_CAMERA_PIN_Y6
-#define CAMERA_PIN_D3 CONFIG_CAMERA_PIN_Y5
-#define CAMERA_PIN_D2 CONFIG_CAMERA_PIN_Y4
-#define CAMERA_PIN_D1 CONFIG_CAMERA_PIN_Y3
-#define CAMERA_PIN_D0 CONFIG_CAMERA_PIN_Y2
-#define CAMERA_PIN_VSYNC CONFIG_CAMERA_PIN_VSYNC
-#define CAMERA_PIN_HREF CONFIG_CAMERA_PIN_HREF
-#define CAMERA_PIN_PCLK CONFIG_CAMERA_PIN_PCLK
+#define CAMERA_PIN_D7 CAMERA_MODULE_CUSTOM_PIN_Y9
+#define CAMERA_PIN_D6 CAMERA_MODULE_CUSTOM_PIN_Y8
+#define CAMERA_PIN_D5 CAMERA_MODULE_CUSTOM_PIN_Y7
+#define CAMERA_PIN_D4 CAMERA_MODULE_CUSTOM_PIN_Y6
+#define CAMERA_PIN_D3 CAMERA_MODULE_CUSTOM_PIN_Y5
+#define CAMERA_PIN_D2 CAMERA_MODULE_CUSTOM_PIN_Y4
+#define CAMERA_PIN_D1 CAMERA_MODULE_CUSTOM_PIN_Y3
+#define CAMERA_PIN_D0 CAMERA_MODULE_CUSTOM_PIN_Y2
+#define CAMERA_PIN_VSYNC CAMERA_MODULE_CUSTOM_PIN_VSYNC
+#define CAMERA_PIN_HREF CAMERA_MODULE_CUSTOM_PIN_HREF
+#define CAMERA_PIN_PCLK CAMERA_MODULE_CUSTOM_PIN_PCLK
 #endif
 
 /**********************
@@ -372,6 +374,10 @@ static esp_err_t touch_init(void)
     const esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_FT5x06_CONFIG();
     ESP_RETURN_ON_ERROR(esp_lcd_new_panel_io_i2c((esp_lcd_i2c_bus_handle_t)CONFIG_TOUCH_I2C_NUM, &tp_io_config, &tp_io_handle), TAG, "");
     return esp_lcd_touch_new_i2c_ft5x06(tp_io_handle, &tp_cfg, &touch_handle);
+#elif CONFIG_TOUCH_FT6X36
+    const esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_FT5x06_CONFIG();
+    ESP_RETURN_ON_ERROR(esp_lcd_new_panel_io_i2c((esp_lcd_i2c_bus_handle_t)CONFIG_TOUCH_I2C_NUM, &tp_io_config, &tp_io_handle), TAG, "");
+    return esp_lcd_touch_new_i2c_ft5x06(tp_io_handle, &tp_cfg, &touch_handle);
 #elif CONFIG_TOUCH_GT1151
     const esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_GT1151_CONFIG();
     ESP_RETURN_ON_ERROR(esp_lcd_new_panel_io_i2c((esp_lcd_i2c_bus_handle_t)CONFIG_TOUCH_I2C_NUM, &tp_io_config, &tp_io_handle), TAG, "");
@@ -392,7 +398,7 @@ static esp_err_t lvgl_init(void)
     /* Initialize LVGL */
     const lvgl_port_cfg_t lvgl_cfg = {
         .task_priority = 4,         /* LVGL task priority */
-        .task_stack = 1024 * 12 ,   /* LVGL task stack size, 12KB to avoid `stack overflow in task LVGL task` */
+        .task_stack = 1024 * 12,    /* LVGL task stack size, 12KB to avoid `stack overflow in task LVGL task` */
         .task_affinity = MCU_CORE0, /* LVGL task pinned to core (-1 is no affinity) */
         .task_max_sleep_ms = 500,   /* Maximum sleep in LVGL task */
         .timer_period_ms = 5        /* LVGL timer tick period in ms */
@@ -476,7 +482,7 @@ esp_err_t app_camera_init(void)
     config.xclk_freq_hz = XCLK_FREQ_HZ;
     config.pixel_format = CAMERA_PIXFORMAT;
     config.frame_size = CAMERA_FRAME_SIZE;
-    config.jpeg_quality = 12;
+    config.jpeg_quality = 30;
     config.fb_count = CAMERA_FB_COUNT;
     config.fb_location = CAMERA_FB_IN_PSRAM;
     config.grab_mode = CAMERA_GRAB_WHEN_EMPTY;

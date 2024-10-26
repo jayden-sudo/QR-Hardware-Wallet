@@ -1,24 +1,22 @@
-#ifndef UI_QR_CODE_H
-#define UI_QR_CODE_H
+#ifndef APP_BACKLIGHT_H
+#define APP_BACKLIGHT_H
 
 /*********************
  *      INCLUDES
  *********************/
-#include <stdint.h>
-#include <stdio.h>
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
+
     /**********************
      * GLOBAL PROTOTYPES
      **********************/
-    void ui_qr_code_init(char *title, char *text_pre, char *qr_code, char *text_post);
-
+    bool app_backlight_support(void);
 #ifdef __cplusplus
-    extern "C"
 }
 #endif
 
-#endif /* UI_QR_CODE_H */
+#endif // APP_BACKLIGHT_H

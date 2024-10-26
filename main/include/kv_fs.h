@@ -21,6 +21,7 @@ extern "C"
     int kv_save(const char *key, const char *hex, size_t len);
     int kv_load(const char *key, char **hex, size_t *len);
     int kv_delete(const char *key);
+    int kv_erase(void);
 #ifdef __cplusplus
 }
 #endif

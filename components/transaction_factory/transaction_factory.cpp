@@ -67,16 +67,16 @@ extern "C"
     /**********************
      * GLOBAL PROTOTYPES
      **********************/
-    void transaction_factory_init(TransactionData *transaction_data, const uint8_t *sign_data, size_t sign_data_len);
-    void transaction_factory_free(TransactionData *transaction_data);
-    char *transaction_factory_to_string(TransactionData *transaction_data);
+    void transaction_factory_init(transaction_data_t *transaction_data, const uint8_t *sign_data, size_t sign_data_len);
+    void transaction_factory_free(transaction_data_t *transaction_data);
+    char *transaction_factory_to_string(transaction_data_t *transaction_data);
 
     /**********************
      *   GLOBAL FUNCTIONS
      **********************/
-    void transaction_factory_init(TransactionData *transaction_data, const uint8_t *sign_data, size_t sign_data_len)
+    void transaction_factory_init(transaction_data_t *transaction_data, const uint8_t *sign_data, size_t sign_data_len)
     {
-        memset(transaction_data, 0, sizeof(TransactionData));
+        memset(transaction_data, 0, sizeof(transaction_data_t));
 
         if (sign_data[0] <= 0x7f)
         {
@@ -273,14 +273,14 @@ extern "C"
             return;
         }
     }
-    void transaction_factory_free(TransactionData *transaction_data)
+    void transaction_factory_free(transaction_data_t *transaction_data)
     {
         if (transaction_data->rlp_encoded)
         {
             free(transaction_data->rlp_encoded);
         }
     }
-    char *transaction_factory_to_string(TransactionData *transaction_data)
+    char *transaction_factory_to_string(transaction_data_t *transaction_data)
     {
         std::string result = "";
         char temp[64];

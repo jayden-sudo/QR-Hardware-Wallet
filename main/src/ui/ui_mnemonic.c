@@ -5,7 +5,7 @@
 #include "stdlib.h"
 #include "utility/trezor/bip39_english.h"
 #include "string.h"
-#include "ui/ui_phrase_input_page.h"
+#include "ui/ui_mnemonic.h"
 #include "ui/ui_events.h"
 #include "alloc_utils.h"
 #include "esp_log.h"
@@ -40,7 +40,8 @@ static int cue_from;
 static int cue_to;
 static char cue_letter[26];
 static size_t cue_letter_len;
-
+static int mnemonic_type;
+static lv_obj_t *event_target;
 /**********************
  *  STATIC PROTOTYPES
  **********************/
@@ -49,13 +50,13 @@ static void msgbox_confirm_event_handler(lv_event_t *e);
 static void msgbox_retry_event_handler(lv_event_t *e);
 static void update_keyboard_button();
 static void phrase_input_handler(lv_event_t *e);
-static void free_current_page();
-static void close_event_handler(lv_event_t *e);
+static void send_mnemonic_confirm_event(void);
 
 /**********************
  * GLOBAL PROTOTYPES
  **********************/
-void ui_create_phrase_input_page(lv_obj_t *lv_parent, bool show_close_btn);
+void ui_mnemonic_init(lv_obj_t *lv_parent, size_t lv_parent_width, size_t lv_parent_height, lv_obj_t *event_target, int mnemonic_type);
+void ui_mnemonic_free(void);
 
 /**********************
  *   STATIC FUNCTIONS
@@ -68,7 +69,38 @@ static void msgbox_confirm_event_handler(lv_event_t *e)
         lv_msgbox_close(mbox);
         lvgl_port_unlock();
     }
-    free_current_page();
+    send_mnemonic_confirm_event();
+}
+
+static void send_mnemonic_confirm_event(void)
+{
+    char *phrase = NULL;
+    if (phrases_len == 24)
+    {
+        phrase = malloc(sizeof(char) * 10 * 24);
+        sprintf(phrase, "%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s",
+                phrases[0], phrases[1], phrases[2],
+                phrases[3], phrases[4], phrases[5],
+                phrases[6], phrases[7], phrases[8],
+                phrases[9], phrases[10], phrases[11],
+                phrases[12], phrases[13], phrases[14],
+                phrases[15], phrases[16], phrases[17],
+                phrases[18], phrases[19], phrases[20],
+                phrases[21], phrases[22], phrases[23]);
+        if (lvgl_port_lock(0))
+        {
+            lv_result_t re = lv_obj_send_event(
+                event_target == NULL ? parent : event_target,
+                phrase == NULL ? UI_EVENT_PHRASE_CANCEL : UI_EVENT_PHRASE_CONFIRM,
+                (void *)phrase);
+            if (re == LV_RESULT_INVALID)
+            {
+                printf("lv_obj_send_event failed\n");
+                free(phrase);
+            }
+            lvgl_port_unlock();
+        }
+    }
 }
 static void msgbox_retry_event_handler(lv_event_t *e)
 {
@@ -135,6 +167,39 @@ static void phrase_choose_event_handler(lv_event_t *e)
                 lvgl_port_unlock();
             }
         }
+    }
+
+    // test
+    if (true)
+    {
+        //  until exhaust file evidence reopen mad stumble beach acquire judge fuel raccoon cram arrange sugar swim cluster exile picture curtain velvet choice surge aware
+        phrases[0] = "until";
+        phrases[1] = "exhaust";
+        phrases[2] = "file";
+        phrases[3] = "evidence";
+        phrases[4] = "reopen";
+        phrases[5] = "mad";
+        phrases[6] = "stumble";
+        phrases[7] = "beach";
+        phrases[8] = "acquire";
+        phrases[9] = "judge";
+        phrases[10] = "fuel";
+        phrases[11] = "raccoon";
+        phrases[12] = "cram";
+        phrases[13] = "arrange";
+        phrases[14] = "sugar";
+        phrases[15] = "swim";
+        phrases[16] = "cluster";
+        phrases[17] = "exile";
+        phrases[18] = "picture";
+        phrases[19] = "curtain";
+        phrases[20] = "velvet";
+        phrases[21] = "choice";
+        phrases[22] = "surge";
+        phrases[23] = "aware";
+        phrases_len = 24;
+
+        send_mnemonic_confirm_event();
     }
 }
 static void update_keyboard_button()
@@ -271,65 +336,17 @@ static void phrase_input_handler(lv_event_t *e)
         }
     }
 }
-static void close_event_handler(lv_event_t *e)
-{
-    phrases_len = 0;
-    free_current_page();
-}
-static void free_current_page()
-{
-    char *phrase = NULL;
-    if (phrases_len == 24)
-    {
-        phrase = malloc(sizeof(char) * 10 * 24);
-        sprintf(phrase, "%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s",
-                phrases[0], phrases[1], phrases[2],
-                phrases[3], phrases[4], phrases[5],
-                phrases[6], phrases[7], phrases[8],
-                phrases[9], phrases[10], phrases[11],
-                phrases[12], phrases[13], phrases[14],
-                phrases[15], phrases[16], phrases[17],
-                phrases[18], phrases[19], phrases[20],
-                phrases[21], phrases[22], phrases[23]);
-    }
-    if (lvgl_port_lock(0))
-    {
-        lv_obj_del(current_page);
-        lvgl_port_unlock();
-    }
-    ALLOC_UTILS_FREE_MEMORY(alloc_utils_memory_struct_pointer);
-
-    phrases = NULL;
-    current_page = NULL;
-    content = NULL;
-    keyboard = NULL;
-    words = NULL;
-    current_input = NULL;
-    cue_from = 0;
-    cue_to = 0;
-    cue_letter_len = 0;
-
-    lv_result_t re = lv_obj_send_event(parent, phrase == NULL ? UI_EVENT_PHRASE_CANCEL : UI_EVENT_PHRASE_CONFIRM, (void *)phrase);
-    if (re == LV_RESULT_INVALID)
-    {
-        printf("lv_obj_send_event failed\n");
-        free(phrase);
-    }
-}
 
 /**********************
  *   GLOBAL FUNCTIONS
  **********************/
-void ui_create_phrase_input_page(lv_obj_t *lv_parent, bool show_close_btn)
+void ui_mnemonic_init(lv_obj_t *lv_parent, size_t parent_width, size_t parent_height, lv_obj_t *_event_target, int _mnemonic_type)
 {
     /*
         UI:
             ┌───────────────────┐
-            │     header        │
-            ├───────────────────┤
             │                   │
             │     content       │
-            │                   │
             │                   │
             ├───────────────────┤
             │ words             │
@@ -337,19 +354,22 @@ void ui_create_phrase_input_page(lv_obj_t *lv_parent, bool show_close_btn)
             │     keyboard      │
             └───────────────────┘
      */
+    mnemonic_type = _mnemonic_type;
+    if (mnemonic_type != 24)
+    {
+        ESP_LOGE(TAG, "mnemonic_type must be 24 words yet!");
+        return;
+    }
 
     parent = lv_parent;
+    event_target = _event_target;
 
     ALLOC_UTILS_INIT_MEMORY_STRUCT(alloc_utils_memory_struct_pointer);
 
     if (lvgl_port_lock(0))
     {
         /* get parent size */
-        int parent_width = lv_obj_get_width(parent);
-        int parent_height = lv_obj_get_height(parent);
-
-        int header_height = parent_height * 0.08;
-        int words_height = parent_height * 0.1;
+        int words_height = parent_height * 0.12;
         int keyboard_height = parent_width * 0.45;
 
         int32_t *col_dsc;
@@ -358,12 +378,11 @@ void ui_create_phrase_input_page(lv_obj_t *lv_parent, bool show_close_btn)
         col_dsc[1] = LV_GRID_TEMPLATE_LAST;
 
         int32_t *row_dsc;
-        ALLOC_UTILS_MALLOC_MEMORY(alloc_utils_memory_struct_pointer, row_dsc, sizeof(int32_t) * 5);
-        row_dsc[0] = header_height;
-        row_dsc[1] = LV_GRID_FR(1);
-        row_dsc[2] = words_height;
-        row_dsc[3] = keyboard_height;
-        row_dsc[4] = LV_GRID_TEMPLATE_LAST;
+        ALLOC_UTILS_MALLOC_MEMORY(alloc_utils_memory_struct_pointer, row_dsc, sizeof(int32_t) * 4);
+        row_dsc[0] = LV_GRID_FR(1);
+        row_dsc[1] = words_height;
+        row_dsc[2] = keyboard_height;
+        row_dsc[3] = LV_GRID_TEMPLATE_LAST;
 
         current_page = lv_obj_create(parent);
         lv_obj_set_scroll_dir(current_page, LV_DIR_NONE);
@@ -375,19 +394,6 @@ void ui_create_phrase_input_page(lv_obj_t *lv_parent, bool show_close_btn)
         lv_obj_set_style_margin_all(current_page, 0, 0);
         lv_obj_set_style_radius(current_page, 0, 0);
         lv_obj_set_style_pad_all(current_page, 0, 0);
-
-        /* header */
-
-        if (show_close_btn)
-        {
-            lv_obj_t *header = lv_button_create(current_page);
-            lv_obj_t *close_lab = lv_label_create(header);
-            lv_label_set_text(close_lab, LV_SYMBOL_CLOSE);
-            lv_obj_add_event_cb(header, close_event_handler, LV_EVENT_CLICKED, NULL);
-            lv_obj_align(close_lab, LV_ALIGN_RIGHT_MID, 0, 0);
-            lv_obj_set_grid_cell(header, LV_GRID_ALIGN_END, 0, 1,
-                                 LV_GRID_ALIGN_CENTER, 0, 1);
-        }
 
         /* content */
         content = lv_obj_create(current_page);
@@ -402,7 +408,7 @@ void ui_create_phrase_input_page(lv_obj_t *lv_parent, bool show_close_btn)
         lv_obj_align(content, LV_ALIGN_CENTER, 0, 0);
         lv_obj_set_flex_flow(content, LV_FLEX_FLOW_ROW_WRAP);
         lv_obj_set_grid_cell(content, LV_GRID_ALIGN_STRETCH, 0, 1,
-                             LV_GRID_ALIGN_STRETCH, 1, 1);
+                             LV_GRID_ALIGN_STRETCH, 0, 1);
 
         /* words */
         words = lv_obj_create(current_page);
@@ -419,7 +425,7 @@ void ui_create_phrase_input_page(lv_obj_t *lv_parent, bool show_close_btn)
         // lv_obj_set_flex_flow(words, LV_FLEX_FLOW_ROW);
         lv_obj_set_scrollbar_mode(words, LV_SCROLLBAR_MODE_OFF);
         lv_obj_set_grid_cell(words, LV_GRID_ALIGN_STRETCH, 0, 1,
-                             LV_GRID_ALIGN_STRETCH, 2, 1);
+                             LV_GRID_ALIGN_STRETCH, 1, 1);
         lv_obj_set_style_pad_left(words, 5, 0);
 
         /* keyboard */
@@ -436,7 +442,7 @@ void ui_create_phrase_input_page(lv_obj_t *lv_parent, bool show_close_btn)
         lv_buttonmatrix_set_button_width(keyboard, 26, 2); /*Make "DEL" *2 wide*/
         lv_obj_align(keyboard, LV_ALIGN_BOTTOM_MID, 0, 0);
         lv_obj_set_grid_cell(keyboard, LV_GRID_ALIGN_STRETCH, 0, 1,
-                             LV_GRID_ALIGN_STRETCH, 3, 1);
+                             LV_GRID_ALIGN_STRETCH, 2, 1);
 
         ALLOC_UTILS_MALLOC_MEMORY(alloc_utils_memory_struct_pointer, phrases, sizeof(char *) * 24);
         phrases_len = 0;
@@ -446,40 +452,26 @@ void ui_create_phrase_input_page(lv_obj_t *lv_parent, bool show_close_btn)
         update_keyboard_button();
         lv_obj_add_event_cb(keyboard, phrase_input_handler, LV_EVENT_CLICKED, NULL);
 
-        // test
-        if (false)
-        {
-            // sleep 2s
-            vTaskDelay(pdMS_TO_TICKS(2000));
-            //  until exhaust file evidence reopen mad stumble beach acquire judge fuel raccoon cram arrange sugar swim cluster exile picture curtain velvet choice surge aware
-            phrases[0] = "until";
-            phrases[1] = "exhaust";
-            phrases[2] = "file";
-            phrases[3] = "evidence";
-            phrases[4] = "reopen";
-            phrases[5] = "mad";
-            phrases[6] = "stumble";
-            phrases[7] = "beach";
-            phrases[8] = "acquire";
-            phrases[9] = "judge";
-            phrases[10] = "fuel";
-            phrases[11] = "raccoon";
-            phrases[12] = "cram";
-            phrases[13] = "arrange";
-            phrases[14] = "sugar";
-            phrases[15] = "swim";
-            phrases[16] = "cluster";
-            phrases[17] = "exile";
-            phrases[18] = "picture";
-            phrases[19] = "curtain";
-            phrases[20] = "velvet";
-            phrases[21] = "choice";
-            phrases[22] = "surge";
-            phrases[23] = "aware";
-            phrases_len = 24;
-            free_current_page();
-        }
-
         lvgl_port_unlock();
     }
+}
+
+void ui_mnemonic_free(void)
+{
+    if (lvgl_port_lock(0))
+    {
+        lv_obj_del(current_page);
+        lvgl_port_unlock();
+    }
+    ALLOC_UTILS_FREE_MEMORY(alloc_utils_memory_struct_pointer);
+
+    phrases = NULL;
+    current_page = NULL;
+    content = NULL;
+    keyboard = NULL;
+    words = NULL;
+    current_input = NULL;
+    cue_from = 0;
+    cue_to = 0;
+    cue_letter_len = 0;
 }

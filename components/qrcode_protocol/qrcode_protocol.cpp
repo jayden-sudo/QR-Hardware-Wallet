@@ -45,10 +45,10 @@ extern "C"
     /**********************
      * GLOBAL PROTOTYPES
      **********************/
-    void free_metamask_sign_request(MetamaskSignRequest *request);
+    void free_metamask_sign_request(metamask_sign_request_t *request);
     void generate_metamask_crypto_hdkey(Wallet *wallet, char **output);
     void generate_metamask_eth_signature(uint8_t *uuid_str, uint8_t signature[65], char **output);
-    int decode_metamask_sign_request(UR ur, MetamaskSignRequest *request);
+    int decode_metamask_sign_request(UR ur, metamask_sign_request_t *request);
 
     URType ur_type(const char *url);
     void qrcode_protocol_bc_ur_init(qrcode_protocol_bc_ur_data_t *data);
@@ -95,7 +95,7 @@ extern "C"
     /**********************
      *   GLOBAL FUNCTIONS
      **********************/
-    void free_metamask_sign_request(MetamaskSignRequest *request)
+    void free_metamask_sign_request(metamask_sign_request_t *request)
     {
         if (request == nullptr)
         {
@@ -126,7 +126,7 @@ extern "C"
     void generate_metamask_crypto_hdkey(Wallet *wallet, char **output)
     {
         HDPrivateKey *_wallet = (HDPrivateKey *)wallet;
-        PublicKeyFingerprint publicKeyFingerprint;
+        publickey_fingerprint_t publicKeyFingerprint;
         wallet_eth_key_fingerprint(_wallet, &publicKeyFingerprint);
 
         uint32_t fingerprint = (publicKeyFingerprint.fingerprint[0] << 24) |
@@ -235,7 +235,7 @@ extern "C"
         *output = (char *)malloc(encoded.length() + 1);
         strcpy(*output, encoded.c_str());
     }
-    int decode_metamask_sign_request(UR _ur, MetamaskSignRequest *request)
+    int decode_metamask_sign_request(UR _ur, metamask_sign_request_t *request)
     {
         ur::UR *ur = (ur::UR *)_ur;
         // eth-sign-request

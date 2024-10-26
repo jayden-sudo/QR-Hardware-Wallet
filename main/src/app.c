@@ -17,7 +17,6 @@
 #include "crc32.h"
 #include "nvs_flash.h"
 #include "nvs.h"
-#include "qrcodegen.h"
 #include "cbor.h"
 #include "esp_code_scanner.h"
 #include "esp_lvgl_port.h"

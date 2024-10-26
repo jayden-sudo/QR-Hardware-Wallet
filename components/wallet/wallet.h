@@ -26,7 +26,7 @@ extern "C"
         uint8_t public_key[33];
         uint8_t chain_code[32];
         uint8_t fingerprint[4];
-    } PublicKeyFingerprint;
+    } publickey_fingerprint_t;
 
     /**********************
      * GLOBAL PROTOTYPES
@@ -36,11 +36,12 @@ extern "C"
     void wallet_free(Wallet wallet);
 
     char *wallet_root_private_key(Wallet wallet);
-    void wallet_eth_key_fingerprint(Wallet wallet, PublicKeyFingerprint *fingerprint);
+    void wallet_eth_key_fingerprint(Wallet wallet, publickey_fingerprint_t *fingerprint);
     Wallet wallet_derive(Wallet wallet, const char *path);
     Wallet wallet_derive_btc(Wallet wallet, unsigned int index);
     Wallet wallet_derive_eth(Wallet wallet, unsigned int index);
     void wallet_get_btc_address_segwit(Wallet wallet, char address[43]);
+    void wallet_get_btc_address_legacy(Wallet wallet, char address[43]);
     void wallet_get_eth_address(Wallet wallet, char address[43]);
     void wallet_eth_sign(Wallet wallet, const uint8_t hash[32], uint8_t signature[65]);
     void wallet_eth_sign_serialized_data(Wallet wallet, uint8_t *serialized_data, size_t serialized_data_len, uint8_t signature[65]);
