@@ -6,8 +6,6 @@
 **Welcome to the QR-Base Hardware Wallet Project!**  
 The goal of this project is to provide a low-cost, easy-to-build hardware wallet that uses QR codes for secure transactions. With price under $20, we aim to make secure digital asset management accessible to everyone.
 
-[Here is a video introducing how QR-Base Wallet interacts with MetaMask from AirGap Wallet.](https://www.youtube.com/watch?v=HIKJh0h7QiU&t=55s)
-
 ## Hardware Supported
 
 The current development is based on the [**ESP32-S3 MCU**](https://www.espressif.com/en/products/socs/esp32-s3), which has enough processing power to handle real-time QR code scanning, making it ideal for a QR-based wallet client.
@@ -104,7 +102,7 @@ The project is developed using the VSCode IDE based on the ESP-IDF framework. Co
 
 A huge thanks to the following open-source projects, which have been instrumental in the development of this project:
 
-[uBitcoin](https://github.com/micro-bitcoin/uBitcoin.git) [tinycbor](https://github.com/intel/tinycbor) [airgap-vault](https://github.com/airgap-it/airgap-vault) [KeystoneHQ](https://github.com/KeystoneHQ) [esp32-camera](https://github.com/espressif/esp32-camera) [esp-code-scanner](https://github.com/espressif/) [bc-ur](https://github.com/Blockstream/esp32_bc-ur)
+[LVGL](https://github.com/lvgl/lvgl) [uBitcoin](https://github.com/micro-bitcoin/uBitcoin.git) [tinycbor](https://github.com/intel/tinycbor) [airgap-vault](https://github.com/airgap-it/airgap-vault) [KeystoneHQ](https://github.com/KeystoneHQ) [esp32-camera](https://github.com/espressif/esp32-camera) [esp-code-scanner](https://github.com/espressif/) [bc-ur](https://github.com/Blockstream/esp32_bc-ur)
 
 ---
 
