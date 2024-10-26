@@ -16,7 +16,7 @@ extern "C"
      * GLOBAL PROTOTYPES
      **********************/
     void ui_mnemonic_init(lv_obj_t *lv_parent, size_t lv_parent_width, size_t lv_parent_height, lv_obj_t *event_target, int mnemonic_type);
-    void ui_mnemonic_free(void);
+    void ui_mnemonic_destroy(void);
 
 #ifdef __cplusplus
     extern "C"

@@ -19,6 +19,8 @@ uint32_t UI_EVENT_PIN_CONFIRM = 0;
 uint32_t UI_EVENT_PIN_CANCEL = 0;
 uint32_t UI_EVENT_MASTER_PAGE_BACK_BUTTON_CLICKED = 0;
 uint32_t UI_EVENT_MASTER_PAGE_CLOSE_BUTTON_CLICKED = 0;
+uint32_t UI_EVENT_DECODER_CANCEL = 0;
+uint32_t UI_EVENT_DECODER_CONFIRM = 0;
 
 /**********************
  *  STATIC VARIABLES
@@ -44,5 +46,7 @@ void ui_init_events(void)
     UI_EVENT_PIN_CANCEL = lv_event_register_id();
     UI_EVENT_MASTER_PAGE_BACK_BUTTON_CLICKED = lv_event_register_id();
     UI_EVENT_MASTER_PAGE_CLOSE_BUTTON_CLICKED = lv_event_register_id();
+    UI_EVENT_DECODER_CANCEL = lv_event_register_id();
+    UI_EVENT_DECODER_CONFIRM = lv_event_register_id();
     ESP_LOGI(TAG, "UI_EVENTS INITED");
 }

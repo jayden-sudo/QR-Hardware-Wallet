@@ -185,7 +185,7 @@ static void ui_connect_qr_destroy()
         lvgl_port_unlock();
     }
 
-    ui_master_page_free(master_page);
+    ui_master_page_destroy(master_page);
 
     if (alloc_utils_memory_struct_pointer != NULL)
     {
@@ -214,7 +214,7 @@ void ui_connect_qrcode(ctrl_home_network_data_t *network_data)
         lv_obj_add_event_cb(event_target, ui_event_handler, UI_EVENT_MASTER_PAGE_BACK_BUTTON_CLICKED, NULL);
         lv_obj_add_event_cb(event_target, ui_event_handler, UI_EVENT_MASTER_PAGE_CLOSE_BUTTON_CLICKED, NULL);
         ALLOC_UTILS_MALLOC_MEMORY(alloc_utils_memory_struct_pointer, master_page, sizeof(ui_master_page_t));
-        ui_master_page_create(NULL, event_target, false, true, "Connect via QR Code", master_page);
+        ui_master_page_init(NULL, event_target, false, true, "Connect via QR Code", master_page);
         lv_obj_t *container = ui_master_page_get_container(master_page);
         ui_master_page_get_container_size(master_page, &container_width, &container_height);
 

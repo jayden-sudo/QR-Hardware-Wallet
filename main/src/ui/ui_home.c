@@ -60,7 +60,6 @@ typedef struct
  *  STATIC VARIABLES
  **********************/
 static lv_obj_t *tv = NULL;
-static lv_obj_t *qr_dialog = NULL;
 static lv_obj_t *preview_image = NULL;
 static lv_obj_t *incorrect_pin_count_max_dd = NULL;
 static alloc_utils_memory_struct *alloc_utils_memory_struct_pointer;
@@ -85,8 +84,8 @@ static char *verify_pin(char *pin_str);
 /**********************
  * GLOBAL PROTOTYPES
  **********************/
-void ui_home(int *_flag);
-void ui_home_free(void);
+void ui_home_init(int *_flag);
+void ui_home_destroy(void);
 void ui_home_start_qr_scan(void);
 void ui_home_stop_qr_scan(void);
 
@@ -266,7 +265,7 @@ static void create_tab_settings(lv_obj_t *parent)
     lv_obj_center(list);
 
     lv_list_add_text(list, "Lock Now");
-    lv_obj_t *btn = lv_list_add_button(list, LV_SYMBOL_CLOSE, "Lock"); // ctrl_home_free();
+    lv_obj_t *btn = lv_list_add_button(list, LV_SYMBOL_CLOSE, "Lock"); // ctrl_home_destroy();
 
     settings_action_data_t *lock_action = NULL;
     ALLOC_UTILS_MALLOC_MEMORY(alloc_utils_memory_struct_pointer, lock_action, sizeof(settings_action_data_t));
@@ -408,13 +407,13 @@ static void ui_event_handler(lv_event_t *e)
             // verify passcode
             if (sub_master_page != NULL)
             {
-                ui_master_page_free(sub_master_page);
+                ui_master_page_destroy(sub_master_page);
                 free(sub_master_page);
                 sub_master_page = NULL;
             }
 
             sub_master_page = malloc(sizeof(ui_master_page_t));
-            ui_master_page_create(NULL, tv, false, true, "Erase All Data", sub_master_page);
+            ui_master_page_init(NULL, tv, false, true, "Erase All Data", sub_master_page);
             int32_t container_width = 0;
             int32_t container_height = 0;
             ui_master_page_get_container_size(sub_master_page, &container_width, &container_height);
@@ -436,7 +435,7 @@ static void ui_event_handler(lv_event_t *e)
         }
         else if (ui_action->action == SETTINGS_ACTION_SHOW_GITHUB_PAGE)
         {
-            ui_qr_code_init("Github", "Scan the QR code to open the project homepage", "https://github.com/jayden-sudo/QR-Hardware-Wallet", NULL);
+            ui_qr_code_init("Github", "Homepage", "https://github.com/jayden-sudo/QR-Hardware-Wallet", "https://github.com/jayden-sudo/QR-Hardware-Wallet");
         }
     }
     else if (code == LV_EVENT_VALUE_CHANGED)
@@ -461,13 +460,13 @@ static void ui_event_handler(lv_event_t *e)
             {
                 if (sub_master_page != NULL)
                 {
-                    ui_master_page_free(sub_master_page);
+                    ui_master_page_destroy(sub_master_page);
                     free(sub_master_page);
                     sub_master_page = NULL;
                 }
                 sub_master_page = malloc(sizeof(ui_master_page_t));
                 sprintf(temp, "Set maximum attempts to %d times", idx + 2);
-                ui_master_page_create(NULL, tv, false, true, temp, sub_master_page);
+                ui_master_page_init(NULL, tv, false, true, temp, sub_master_page);
                 int32_t container_width = 0;
                 int32_t container_height = 0;
                 ui_master_page_get_container_size(sub_master_page, &container_width, &container_height);
@@ -485,11 +484,11 @@ static void ui_event_handler(lv_event_t *e)
     {
         if (sub_master_page != NULL)
         {
-            ui_master_page_free(sub_master_page);
+            ui_master_page_destroy(sub_master_page);
             free(sub_master_page);
             sub_master_page = NULL;
         }
-        ui_pin_free();
+        ui_pin_destroy();
 
         // reset UI
         if (pin_verify_post_action == PIN_VERIFY_POST_ACTION_CHANGE_INCORRECT_PIN_COUNT_MAX)
@@ -536,11 +535,11 @@ static char *verify_pin(char *pin_str)
             // close master page
             if (sub_master_page != NULL)
             {
-                ui_master_page_free(sub_master_page);
+                ui_master_page_destroy(sub_master_page);
                 free(sub_master_page);
                 sub_master_page = NULL;
             }
-            ui_pin_free();
+            ui_pin_destroy();
         }
     }
     return ret;
@@ -549,7 +548,7 @@ static char *verify_pin(char *pin_str)
 /**********************
  *   GLOBAL FUNCTIONS
  **********************/
-void ui_home(int *_flag)
+void ui_home_init(int *_flag)
 {
     flag = _flag;
 
@@ -601,7 +600,7 @@ void ui_home(int *_flag)
         lvgl_port_unlock();
     }
 }
-void ui_home_free(void)
+void ui_home_destroy(void)
 {
     if (lvgl_port_lock(0))
     {
@@ -620,7 +619,7 @@ void ui_home_free(void)
     settings_action_tmp_2 = NULL;
     if (sub_master_page != NULL)
     {
-        ui_master_page_free(sub_master_page);
+        ui_master_page_destroy(sub_master_page);
         free(sub_master_page);
         sub_master_page = NULL;
     }

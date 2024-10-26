@@ -48,7 +48,7 @@ static void qrScannerTask(void *parameters);
  * GLOBAL PROTOTYPES
  **********************/
 void ctrl_home_init(char *privateKeyStr, int *_flag);
-void ctrl_home_free(void);
+void ctrl_home_destroy(void);
 
 /* wallet page */
 ctrl_home_network_data_t *ctrl_home_list_networks(void);
@@ -124,28 +124,45 @@ static void qrScannerTask(void *parameters)
         }
         vTaskDelay(pdMS_TO_TICKS(10));
 
-        // Decode Progress
-        esp_image_scanner_t *esp_scn = esp_code_scanner_create();
-        esp_code_scanner_set_config(esp_scn, config);
-        int decoded_num = esp_code_scanner_scan_image(esp_scn, fb->buf);
-        if (decoded_num)
+        bool debug_mode = false;
+        if (debug_mode)
         {
-            esp_code_scanner_symbol_t result = esp_code_scanner_result(esp_scn);
-            if (result.data != NULL && strlen(result.data) > 0)
+            char *qr_data = "UR:ETH-SIGN-REQUEST/OLADTPDAGDFDFDOXCPJOLRGTOTNYKIAHSFRTKSJKJTAOHDEYAOWTLSPKENOSASLRHKISDLAELRJKTBIOTPLFGMAYMWNEVOESHLIOINKSENQZNEGMFTGYFPOSYAZMTIATIMLNHTWFBEKNFZAELARTAXAAAACYAEPKENOSAHTAADDYOEADLECSDWYKCSFNYKAEYKAEWKAEWKAOCYWLDAQZPRAMGHNEVOESHLIOINKSENQZNEGMFTGYFPOSYAZMTIATIMLTHNIHIM";
+            qrcode_protocol_bc_ur_receive(qrcode_protocol_bc_ur_data, qr_data);
+            if (qrcode_protocol_bc_ur_is_success(qrcode_protocol_bc_ur_data))
             {
-                // Decode UR
-                qrcode_protocol_bc_ur_receive(qrcode_protocol_bc_ur_data, result.data);
-                if (qrcode_protocol_bc_ur_is_success(qrcode_protocol_bc_ur_data))
-                {
-                    // ESP_LOGI(TAG, "scan success");
-                    scan_success = true;
-                    ui_home_stop_qr_scan();
-                    ctrl_sign_init(wallet, qrcode_protocol_bc_ur_data);
-                }
+                // ESP_LOGI(TAG, "scan success");
+                scan_success = true;
+                ui_home_stop_qr_scan();
+                ctrl_sign_init(wallet, qrcode_protocol_bc_ur_data);
             }
         }
-        /* esp_code_scanner_symbol_t unavailable after esp_code_scanner_destroy */
-        esp_code_scanner_destroy(esp_scn);
+        else
+        {
+            // Decode Progress
+            esp_image_scanner_t *esp_scn = esp_code_scanner_create();
+            esp_code_scanner_set_config(esp_scn, config);
+            int decoded_num = esp_code_scanner_scan_image(esp_scn, fb->buf);
+            if (decoded_num)
+            {
+                esp_code_scanner_symbol_t result = esp_code_scanner_result(esp_scn);
+                if (result.data != NULL && strlen(result.data) > 0)
+                {
+                    // Decode UR
+                    qrcode_protocol_bc_ur_receive(qrcode_protocol_bc_ur_data, result.data);
+                    if (qrcode_protocol_bc_ur_is_success(qrcode_protocol_bc_ur_data))
+                    {
+                        // ESP_LOGI(TAG, "scan success");
+                        scan_success = true;
+                        ui_home_stop_qr_scan();
+                        ctrl_sign_init(wallet, qrcode_protocol_bc_ur_data);
+                    }
+                }
+            }
+            /* esp_code_scanner_symbol_t unavailable after esp_code_scanner_destroy */
+            esp_code_scanner_destroy(esp_scn);
+        }
+
         esp_camera_fb_return(fb);
         vTaskDelay(pdMS_TO_TICKS(5));
     }
@@ -174,11 +191,11 @@ void ctrl_home_init(char *privateKeyStr, int *_flag)
     flag = _flag;
     *flag = 0;
     wallet = wallet_init_from_xprv(privateKeyStr);
-    ui_home(flag);
+    ui_home_init(flag);
 }
-void ctrl_home_free(void)
+void ctrl_home_destroy(void)
 {
-    ui_home_free();
+    ui_home_destroy();
     if (wallet != NULL)
     {
         wallet_free(wallet);

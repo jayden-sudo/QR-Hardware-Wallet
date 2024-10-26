@@ -51,7 +51,7 @@ static void ui_qr_code_destroy(void *arg)
     }
     if (master_page != NULL)
     {
-        ui_master_page_free(master_page);
+        ui_master_page_destroy(master_page);
         free(master_page);
         master_page = NULL;
     }
@@ -78,7 +78,7 @@ void ui_qr_code_init(char *title, char *text_pre, char *qr_code, char *text_post
 
         lv_obj_add_event_cb(event_target, ui_event_handler, UI_EVENT_MASTER_PAGE_CLOSE_BUTTON_CLICKED, NULL);
         master_page = malloc(sizeof(ui_master_page_t));
-        ui_master_page_create(NULL, event_target, false, true, title, master_page);
+        ui_master_page_init(NULL, event_target, false, true, title, master_page);
         lv_obj_t *_container = ui_master_page_get_container(master_page);
         int32_t container_width = 0;
         int32_t container_height = 0;

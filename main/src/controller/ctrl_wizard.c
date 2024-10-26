@@ -42,8 +42,8 @@ static char *verify_pin(char *pin);
 /**********************
  * GLOBAL PROTOTYPES
  **********************/
-void ctrl_wizard(char **privateKeyStr);
-void ctrl_wizard_free();
+void ctrl_wizard_init(char **privateKeyStr);
+void ctrl_wizard_destroy();
 void save_wallet_data(wallet_data_version_1_t *walletData);
 void ctrl_wizard_set_private_key(char *privateKeyStr);
 
@@ -75,7 +75,7 @@ static char *verify_pin(char *pin_str)
 /**********************
  *   GLOBAL FUNCTIONS
  **********************/
-void ctrl_wizard(char **privateKeyStr)
+void ctrl_wizard_init(char **privateKeyStr)
 {
     // reset wallet data
     // kv_delete(KV_FS_KEY_WALLET);
@@ -101,7 +101,7 @@ void ctrl_wizard(char **privateKeyStr)
         current_step = STEP_INIT;
         free(walletData_cache);
         walletData_cache = NULL;
-        ui_wizard();
+        ui_wizard_init();
     }
     else
     {
@@ -111,7 +111,7 @@ void ctrl_wizard(char **privateKeyStr)
         ui_pin_verify(screen, lv_obj_get_width(screen), lv_obj_get_height(screen), screen, verify_pin);
     }
 }
-void ctrl_wizard_free()
+void ctrl_wizard_destroy()
 {
     if (walletData_cache != NULL)
     {
@@ -120,11 +120,11 @@ void ctrl_wizard_free()
     }
     if (current_step == STEP_INIT)
     {
-        ui_wizard_free();
+        ui_wizard_destroy();
     }
     else
     {
-        ui_pin_free();
+        ui_pin_destroy();
     }
 }
 void ctrl_wizard_set_private_key(char *privateKeyStr)

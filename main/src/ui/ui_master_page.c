@@ -18,8 +18,8 @@ static void close_event_handler(lv_event_t *e);
 /**********************
  * GLOBAL PROTOTYPES
  **********************/
-void ui_master_page_create(lv_obj_t *parent, lv_obj_t *event_target, bool back_button_visibility, bool close_button_visibility, char *title, ui_master_page_t *ui_master_page);
-void ui_master_page_free(ui_master_page_t *ui_master_page);
+void ui_master_page_init(lv_obj_t *parent, lv_obj_t *event_target, bool back_button_visibility, bool close_button_visibility, char *title, ui_master_page_t *ui_master_page);
+void ui_master_page_destroy(ui_master_page_t *ui_master_page);
 lv_obj_t *ui_master_page_get_container(ui_master_page_t *ui_master_page);
 void ui_master_page_get_container_size(ui_master_page_t *ui_master_page, int32_t *container_width, int32_t *container_height);
 void ui_master_page_set_title(char *title, ui_master_page_t *ui_master_page);
@@ -56,7 +56,7 @@ static void close_event_handler(lv_event_t *e)
 /**********************
  *   GLOBAL FUNCTIONS
  **********************/
-void ui_master_page_create(lv_obj_t *parent, lv_obj_t *event_target, bool back_button_visibility, bool close_button_visibility, char *title, ui_master_page_t *ui_master_page)
+void ui_master_page_init(lv_obj_t *parent, lv_obj_t *event_target, bool back_button_visibility, bool close_button_visibility, char *title, ui_master_page_t *ui_master_page)
 {
     /*
     UI
@@ -100,6 +100,7 @@ void ui_master_page_create(lv_obj_t *parent, lv_obj_t *event_target, bool back_b
 
         /* back button */
         lv_obj_t *back_btn = lv_button_create(ui_master_page->master_page);
+        lv_obj_set_style_bg_color(back_btn, lv_color_hex(0xaaaaaa), 0);
         lv_obj_t *back_lab = lv_label_create(back_btn);
         lv_label_set_text(back_lab, "<");
         lv_obj_set_style_text_color(back_lab, lv_color_hex(0x000000), 0);
@@ -138,8 +139,9 @@ void ui_master_page_create(lv_obj_t *parent, lv_obj_t *event_target, bool back_b
 
         /* close button */
         lv_obj_t *close_btn = lv_button_create(ui_master_page->master_page);
-        lv_obj_set_style_bg_color(close_btn, lv_color_hex(0x00ff00), 0);
-        lv_obj_t *close_lab = lv_label_create(close_btn);
+        // lv_obj_set_style_bg_color(close_btn, lv_color_hex(0x2E4800), 0);
+        lv_obj_set_style_bg_color(close_btn, lv_color_hex(0xFAEA00), 0);
+        lv_obj_t *close_lab = lv_label_create(close_btn); 
         lv_label_set_text(close_lab, "X");
         lv_obj_set_style_text_color(close_lab, lv_color_hex(0x000000), 0);
         // lv_obj_set_style_bg_opa(close_btn, LV_OPA_TRANSP, 0);
@@ -173,7 +175,7 @@ void ui_master_page_create(lv_obj_t *parent, lv_obj_t *event_target, bool back_b
     }
 }
 
-void ui_master_page_free(ui_master_page_t *ui_master_page)
+void ui_master_page_destroy(ui_master_page_t *ui_master_page)
 {
     if (ui_master_page == NULL)
     {

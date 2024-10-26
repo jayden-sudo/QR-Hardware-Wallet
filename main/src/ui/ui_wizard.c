@@ -98,8 +98,8 @@ static void task_store_wallet_data(void *parameters);
 /**********************
  * GLOBAL PROTOTYPES
  **********************/
-void ui_wizard(void);
-void ui_wizard_free(void);
+void ui_wizard_init(void);
+void ui_wizard_destroy(void);
 
 /**********************
  *   STATIC FUNCTIONS
@@ -195,12 +195,12 @@ static void on_tab_change(size_t prev_tab_index, size_t next_tab_index)
     if (prev_tab_index == TAB_INDEX_ENTER_MNEMONIC)
     {
         // free mnemonic input UI
-        ui_mnemonic_free();
+        ui_mnemonic_destroy();
     }
     else if (prev_tab_index == TAB_INDEX_ENTER_PIN)
     {
         // free pin input UI
-        ui_pin_free();
+        ui_pin_destroy();
     }
 
     if (next_tab_index == TAB_INDEX_ENTER_MNEMONIC)
@@ -377,7 +377,7 @@ static void task_store_wallet_data(void *parameters)
 /**********************
  *   GLOBAL FUNCTIONS
  **********************/
-void ui_wizard()
+void ui_wizard_init()
 {
     screen = lv_screen_active();
 
@@ -390,7 +390,7 @@ void ui_wizard()
         lv_obj_add_event_cb(screen, ui_event_handler, UI_EVENT_PHRASE_CONFIRM, NULL);
         lv_obj_add_event_cb(screen, ui_event_handler, UI_EVENT_PIN_CONFIRM, NULL);
         ui_master_page = malloc(sizeof(ui_master_page_t));
-        ui_master_page_create(NULL, screen, false, false, tab_title_list[0], ui_master_page);
+        ui_master_page_init(NULL, screen, false, false, tab_title_list[0], ui_master_page);
         container = ui_master_page_get_container(ui_master_page);
         tv = lv_tabview_create(container);
         NO_PADDING(tv);
@@ -423,11 +423,11 @@ void ui_wizard()
     }
     ui_toast_show("NOTE:\nSECURE BOOT in current version does not implemented, If the device is lost, your private key may be compromised!", 3000);
 }
-void ui_wizard_free(void)
+void ui_wizard_destroy(void)
 {
     if (lvgl_port_lock(0))
     {
-        ui_master_page_free(ui_master_page);
+        ui_master_page_destroy(ui_master_page);
         free(ui_master_page);
         ui_master_page = NULL;
         lvgl_port_unlock();

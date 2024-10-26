@@ -45,12 +45,12 @@ void ctrl_init(void *parameters)
     while (1)
     {
         char *privateKeyStr = NULL;
-        ctrl_wizard(&privateKeyStr);
+        ctrl_wizard_init(&privateKeyStr);
         while (privateKeyStr == NULL)
         {
             vTaskDelay(pdMS_TO_TICKS(10));
         }
-        ctrl_wizard_free();
+        ctrl_wizard_destroy();
         /* show main page */
         int home_flag = 0;
         ctrl_home_init(privateKeyStr, &home_flag);
@@ -74,7 +74,7 @@ void ctrl_init(void *parameters)
         {
             vTaskDelay(pdMS_TO_TICKS(10));
         }
-        ctrl_home_free();
+        ctrl_home_destroy();
         free(privateKeyStr);
         privateKeyStr = NULL;
     }

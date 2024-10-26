@@ -15,8 +15,8 @@ extern "C"
     /**********************
      * GLOBAL PROTOTYPES
      **********************/
-    void ctrl_wizard(char **privateKeyStr);
-    void ctrl_wizard_free();
+    void ctrl_wizard_init(char **privateKeyStr);
+    void ctrl_wizard_destroy();
     void ctrl_wizard_set_private_key(char *private_key_str);
 
 #ifdef __cplusplus

@@ -56,7 +56,7 @@ static void send_mnemonic_confirm_event(void);
  * GLOBAL PROTOTYPES
  **********************/
 void ui_mnemonic_init(lv_obj_t *lv_parent, size_t lv_parent_width, size_t lv_parent_height, lv_obj_t *event_target, int mnemonic_type);
-void ui_mnemonic_free(void);
+void ui_mnemonic_destroy(void);
 
 /**********************
  *   STATIC FUNCTIONS
@@ -169,8 +169,8 @@ static void phrase_choose_event_handler(lv_event_t *e)
         }
     }
 
-    // test
-    if (true)
+    bool debug_mode = false;
+    if (debug_mode)
     {
         //  until exhaust file evidence reopen mad stumble beach acquire judge fuel raccoon cram arrange sugar swim cluster exile picture curtain velvet choice surge aware
         phrases[0] = "until";
@@ -456,7 +456,7 @@ void ui_mnemonic_init(lv_obj_t *lv_parent, size_t parent_width, size_t parent_he
     }
 }
 
-void ui_mnemonic_free(void)
+void ui_mnemonic_destroy(void)
 {
     if (lvgl_port_lock(0))
     {

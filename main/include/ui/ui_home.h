@@ -14,8 +14,8 @@ extern "C"
     /**********************
      * GLOBAL PROTOTYPES
      **********************/
-    void ui_home(int *_flag);
-    void ui_home_free(void);
+    void ui_home_init(int *_flag);
+    void ui_home_destroy(void);
     void ui_home_start_qr_scan(void);
     void ui_home_stop_qr_scan(void);
 

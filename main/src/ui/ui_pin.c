@@ -64,7 +64,7 @@ static void send_pin_confirm_event(void);
  **********************/
 void ui_pin_set(lv_obj_t *lv_parent, size_t lv_parent_width, size_t lv_parent_height, lv_obj_t *event_target);
 void ui_pin_verify(lv_obj_t *lv_parent, size_t lv_parent_width, size_t lv_parent_height, lv_obj_t *event_target, verify_function verify_fun);
-void ui_pin_free(void);
+void ui_pin_destroy(void);
 
 /**********************
  *   STATIC FUNCTIONS
@@ -345,7 +345,7 @@ static void pin_input_event_handler(lv_event_t *e)
                     char *result = verify_pin(pin);
                     if (result == NULL)
                     {
-                        ui_pin_free();
+                        ui_pin_destroy();
                         return;
                     }
                     else
@@ -416,7 +416,7 @@ void ui_pin_verify(lv_obj_t *lv_parent, size_t lv_parent_width, size_t lv_parent
         lvgl_port_unlock();
     }
 }
-void ui_pin_free(void)
+void ui_pin_destroy(void)
 {
     if (current_page != NULL)
     {

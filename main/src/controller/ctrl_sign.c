@@ -7,8 +7,10 @@
 #include <stdlib.h>
 #include "base64url.h"
 #include "transaction_factory.h"
-#include "ui/ui_sign.h"
-
+#include "ui/ui_decoder.h"
+#include "ui/ui_events.h"
+#include "ui/ui_qr_code.h"
+#include "ui/ui_loading.h"
 
 /*********************
  *      DEFINES
@@ -20,30 +22,62 @@
  **********************/
 static Wallet *wallet;
 static qrcode_protocol_bc_ur_data_t *qrcode_protocol_bc_ur_data;
+static lv_obj_t *event_target = NULL;
+
+/**********************
+ *  STATIC PROTOTYPES
+ **********************/
+static void ui_event_handler(lv_event_t *e);
+static void ctrl_sign_destroy(void *arg);
+static char *ctrl_sign_get_signature(void);
+static void show_qr_signature(char *arg);
 
 /**********************
  * GLOBAL PROTOTYPES
  **********************/
 void ctrl_sign_init(Wallet *wallet, qrcode_protocol_bc_ur_data_t *qrcode_protocol_bc_ur_data);
-void ctrl_sign_free(void);
-char *ctrl_sign_get_signature(void);
 
 /**********************
- *   GLOBAL FUNCTIONS
+ *   STATIC FUNCTIONS
  **********************/
-void ctrl_sign_init(Wallet *_wallet, qrcode_protocol_bc_ur_data_t *_qrcode_protocol_bc_ur_data)
+static void ui_event_handler(lv_event_t *e)
 {
-    wallet = _wallet;
-    qrcode_protocol_bc_ur_data = _qrcode_protocol_bc_ur_data;
-    ui_sign_init();
+    lv_event_code_t code = lv_event_get_code(e);
+    if (code == UI_EVENT_DECODER_CANCEL)
+    {
+        lv_async_call(ctrl_sign_destroy, NULL);
+    }
+    else if (code == UI_EVENT_DECODER_CONFIRM)
+    {
+        ui_loading_show();
+        lv_async_call(show_qr_signature, NULL);
+    }
 }
-void ctrl_sign_free(void)
+static void show_qr_signature(char *arg)
+{
+    char *signature = ctrl_sign_get_signature();
+    ui_qr_code_init("Signature", "Scan the QR code to send transaction", signature, NULL);
+    free(signature);
+    ctrl_sign_destroy(NULL);
+    ui_loading_hide();
+}
+static void ctrl_sign_destroy(void *arg)
 {
     qrcode_protocol_bc_ur_free(qrcode_protocol_bc_ur_data);
     free(qrcode_protocol_bc_ur_data);
     qrcode_protocol_bc_ur_data = NULL;
+
+    if (lvgl_port_lock(0))
+    {
+        if (event_target != NULL)
+        {
+            lv_obj_del(event_target);
+            event_target = NULL;
+        }
+        lvgl_port_unlock();
+    }
 }
-char *ctrl_sign_get_signature(void)
+static char *ctrl_sign_get_signature(void)
 {
     char *qr_code = NULL;
     const char *type = qrcode_protocol_bc_ur_type(qrcode_protocol_bc_ur_data);
@@ -156,4 +190,27 @@ char *ctrl_sign_get_signature(void)
         ESP_LOGI(TAG, "Unsupported type: %s", type);
     }
     return qr_code;
+}
+
+/**********************
+ *   GLOBAL FUNCTIONS
+ **********************/
+void ctrl_sign_init(Wallet *_wallet, qrcode_protocol_bc_ur_data_t *_qrcode_protocol_bc_ur_data)
+{
+    ui_init_events();
+
+    wallet = _wallet;
+    qrcode_protocol_bc_ur_data = _qrcode_protocol_bc_ur_data;
+
+    if (lvgl_port_lock(0))
+    {
+        event_target = lv_obj_create(lv_scr_act());
+        lv_obj_add_flag(event_target, LV_OBJ_FLAG_HIDDEN);
+        lvgl_port_unlock();
+    }
+
+    lv_obj_add_event_cb(event_target, ui_event_handler, UI_EVENT_DECODER_CANCEL, NULL);
+    lv_obj_add_event_cb(event_target, ui_event_handler, UI_EVENT_DECODER_CONFIRM, NULL);
+
+    ui_decoder_init(wallet, qrcode_protocol_bc_ur_data, event_target);
 }

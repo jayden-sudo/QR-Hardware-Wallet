@@ -14,8 +14,8 @@ extern "C"
     /**********************
      * GLOBAL PROTOTYPES
      **********************/
-    void ui_wizard();
-    void ui_wizard_free(void);
+    void ui_wizard_init();
+    void ui_wizard_destroy(void);
 
 #ifdef __cplusplus
     extern "C"
