@@ -88,7 +88,7 @@ The current development is based on the [**ESP32-S3 MCU**](https://www.espressif
 ## Feature Showcase
 
 <div style="display: flex; flex-wrap: wrap; width: 100%">
-<img src="docs/images/connect-to-metamask.gif" alt="connect to metamask" style="width: 400px;height: 346px;">
+<img src="docs/images/connect-to-metamask.gif" alt="connect to metamask" style="width: 400px;height: 356px;">
 <img src="docs/images/sign-transaction-metamask.gif" alt="sign transaction metamask" style="width: 400px;height: 349px;">
 <img src="docs/images/enter-mnemonic.gif" alt="enter mnemonic" style="width: 400px;height: 599px;">
 </div>
