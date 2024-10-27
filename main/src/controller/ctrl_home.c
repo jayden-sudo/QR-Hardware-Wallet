@@ -69,6 +69,7 @@ bool ctrl_home_pin_max_attempts_set(int max_attempts);
  **********************/
 static void qrScannerTask(void *parameters)
 {
+    int width = 240;
     lv_obj_t *image = (lv_obj_t *)parameters;
     if (ESP_OK != app_camera_init())
     {
@@ -89,7 +90,7 @@ static void qrScannerTask(void *parameters)
         vTaskDelete(NULL);
         return;
     }
-    if (fb->width != 240 || fb->height != 240)
+    if (fb->width != width || fb->height != width)
     {
         ESP_LOGE(TAG, "camera not in 240x240");
         vTaskDelete(NULL);
@@ -99,9 +100,22 @@ static void qrScannerTask(void *parameters)
     qrcode_protocol_bc_ur_data_t *qrcode_protocol_bc_ur_data = (qrcode_protocol_bc_ur_data_t *)malloc(sizeof(qrcode_protocol_bc_ur_data_t));
     qrcode_protocol_bc_ur_init(qrcode_protocol_bc_ur_data);
 
+    uint8_t *swap_buf = NULL;
+    uint8_t *line_buf = NULL;
+    int line_size = width * 2; // RGB565 2 bytes per pixel
+    if (CAMERA_SWAP_X || CAMERA_SWAP_Y)
+    {
+        swap_buf = (uint8_t *)malloc(line_size * width);
+        if (!CAMERA_SWAP_Y)
+        {
+            line_buf = (uint8_t *)malloc(line_size);
+        }
+    }
+
     img_buffer.header.w = fb->width;
     img_buffer.header.h = fb->height;
-    img_buffer.data_size = fb->len;
+    img_buffer.data_size = line_size * width; // fb->len;
+
     esp_code_scanner_config_t config = {ESP_CODE_SCANNER_MODE_FAST, ESP_CODE_SCANNER_IMAGE_RGB565, fb->width, fb->height};
     esp_camera_fb_return(fb);
 
@@ -115,7 +129,67 @@ static void qrScannerTask(void *parameters)
             ESP_LOGE(TAG, "camera get failed");
             continue;
         }
-        img_buffer.data = fb->buf;
+        if (CAMERA_SWAP_X || CAMERA_SWAP_Y)
+        {
+            int new_x;
+            int new_y;
+            if (CAMERA_SWAP_X && CAMERA_SWAP_Y)
+            {
+                /*
+                 (0,0) -> (239,239)
+                 (0,1) -> (239,238)
+                 ...
+                 (239,238) -> (0,1)
+                 (239,239) -> (0,0)
+                 */
+                for (int x = 0; x < width; x++)
+                {
+                    for (int y = 0; y < width; y++)
+                    {
+                        new_x = width - x - 1;
+                        new_y = width - y - 1;
+                        memcpy(swap_buf + new_x * line_size + new_y, fb->buf + x * line_size + y, 2);
+                    }
+                }
+            }
+            else if (CAMERA_SWAP_X)
+            {
+                /*
+                 (0,0) -> (239,0)
+                 (0,1) -> (239,1)
+                 ...
+                 (239,238) -> (0,238)
+                 (239,239) -> (0,239)
+                 */
+                for (int x = 0; x < width; x++)
+                {
+                    for (int y = 0; y < width; y++)
+                    {
+                        new_x = width - x - 1;
+                        memcpy(swap_buf + new_x * line_size + y, fb->buf + x * line_size + y, 2);
+                    }
+                }
+            }
+            else if (CAMERA_SWAP_Y)
+            {
+                /*
+               (0,0) -> (0,239)
+               (0,1) -> (0,238)
+               ...
+               (239,238) -> (239,1)
+               (239,239) -> (239,0)
+               */
+                for (int y = 0; y < width; y++)
+                {
+                    memcpy(swap_buf + y * line_size, fb->buf + (width - y - 1) * line_size, line_size);
+                }
+            }
+            img_buffer.data = swap_buf;
+        }
+        else
+        {
+            img_buffer.data = fb->buf;
+        }
         vTaskDelay(pdMS_TO_TICKS(10));
         if (lvgl_port_lock(0))
         {
@@ -142,12 +216,13 @@ static void qrScannerTask(void *parameters)
             // Decode Progress
             esp_image_scanner_t *esp_scn = esp_code_scanner_create();
             esp_code_scanner_set_config(esp_scn, config);
-            int decoded_num = esp_code_scanner_scan_image(esp_scn, fb->buf);
+            int decoded_num = esp_code_scanner_scan_image(esp_scn, img_buffer.data);
             if (decoded_num)
             {
                 esp_code_scanner_symbol_t result = esp_code_scanner_result(esp_scn);
                 if (result.data != NULL && strlen(result.data) > 0)
                 {
+                    ESP_LOGI(TAG, "scan result:%s", result.data);
                     // Decode UR
                     qrcode_protocol_bc_ur_receive(qrcode_protocol_bc_ur_data, result.data);
                     if (qrcode_protocol_bc_ur_is_success(qrcode_protocol_bc_ur_data))
@@ -178,6 +253,16 @@ static void qrScannerTask(void *parameters)
     {
         lv_img_set_src(image, NULL);
         lvgl_port_unlock();
+    }
+    if (swap_buf != NULL)
+    {
+        free(swap_buf);
+        swap_buf = NULL;
+    }
+    if (line_buf != NULL)
+    {
+        free(line_buf);
+        line_buf = NULL;
     }
     esp_camera_deinit();
     vTaskDelete(NULL);

@@ -37,13 +37,16 @@
 /* custom camera module setting end */
 #endif
 
-#define XCLK_FREQ_HZ 15000000                  /*      ─┐                                         */
-/* NOTE: only support PIXFORMAT_RGB565 yet */  /*       │                                         */
-#define CAMERA_PIXFORMAT PIXFORMAT_RGB565      /*       │                                         */
-/* NOTE: only support FRAMESIZE_240X240 yet */ /*       ├─ Camera config                          */
-#define CAMERA_FRAME_SIZE FRAMESIZE_240X240    /*       │                                         */
-#define CAMERA_FB_COUNT 2                      /*       │                                         */
-#define CAMERA_ROTATION 180                    /*      ─┘                                         */
+#define XCLK_FREQ_HZ 15000000                             /*      ─┐                                         */
+/* NOTE: only support PIXFORMAT_RGB565 yet */             /*       │                                         */
+#define CAMERA_PIXFORMAT PIXFORMAT_RGB565                 /*       │                                         */
+/* NOTE: only support FRAMESIZE_240X240 yet */            /*       │                                         */
+#define CAMERA_FRAME_SIZE FRAMESIZE_240X240               /*       ├─ Camera config                          */
+#define CAMERA_FB_COUNT 2                                 /*       │                                         */
+/* CAMERA_SWAP */                                         /*       │                                         */
+/*It’s useful for boards with reversed camera mounting.*/ /*       │                                         */
+#define CAMERA_SWAP_X 0                                   /*       │                                         */
+#define CAMERA_SWAP_Y 1                                   /*      ─┘                                         */
 
 /*********************
  * LCD Module Settings

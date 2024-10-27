@@ -245,8 +245,6 @@ static void create_tab_scanner(lv_obj_t *parent)
     preview_image = lv_image_create(parent);
     lv_obj_center(preview_image);
     lv_obj_set_size(preview_image, 240, 240);
-    // lv_obj_set_style_transform_rotation(preview_image,0, 0);
-    lv_image_set_rotation(preview_image, CAMERA_ROTATION * 10);
 }
 static void create_tab_settings(lv_obj_t *parent)
 {
