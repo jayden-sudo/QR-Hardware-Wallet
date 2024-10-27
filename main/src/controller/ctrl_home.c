@@ -19,6 +19,9 @@
 #include "qrcode_protocol.h"
 #include "esp_code_scanner.h"
 #include "controller/ctrl_sign.h"
+#include "controller/ctrl_init.h"
+#include "freertos/timers.h"
+#include <wallet_db.h>
 
 /*********************
  *      DEFINES
@@ -36,19 +39,23 @@ LV_IMG_DECLARE(wallet_rabby)
 static const char *TAG = "ctrl_home";
 static Wallet *wallet = NULL;
 static ctrl_home_network_data_t *network_data = NULL;
-static int *flag = NULL;
-static bool scan_task_running = 0;
+static bool scan_task_status_request = false;
+static bool scan_task_status = false;
+static TimerHandle_t lock_screen_timer;
 
 /**********************
  *  STATIC PROTOTYPES
  **********************/
 static void qrScannerTask(void *parameters);
+static void global_touch_event_handler(lv_event_t *e);
+static void lock_screen_timeout_callback(TimerHandle_t xTimer);
 
 /**********************
  * GLOBAL PROTOTYPES
  **********************/
-void ctrl_home_init(char *privateKeyStr, int *_flag);
+void ctrl_home_init(char *privateKeyStr);
 void ctrl_home_destroy(void);
+void ctrl_home_lock_screen(void);
 
 /* wallet page */
 ctrl_home_network_data_t *ctrl_home_list_networks(void);
@@ -97,6 +104,8 @@ static void qrScannerTask(void *parameters)
         return;
     }
 
+    scan_task_status = true;
+
     qrcode_protocol_bc_ur_data_t *qrcode_protocol_bc_ur_data = (qrcode_protocol_bc_ur_data_t *)malloc(sizeof(qrcode_protocol_bc_ur_data_t));
     qrcode_protocol_bc_ur_init(qrcode_protocol_bc_ur_data);
 
@@ -121,7 +130,13 @@ static void qrScannerTask(void *parameters)
 
     bool scan_success = false;
 
-    while (scan_task_running && !scan_success)
+    wallet_data_version_1_t walletData;
+    wallet_db_load_wallet_data(&walletData);
+    uint32_t LOCK_SCREEN_TIMEOUT_MS = walletData.lockScreenTimeout;
+
+    TickType_t time_start = xTaskGetTickCount();
+
+    while (scan_task_status_request && !scan_success)
     {
         fb = esp_camera_fb_get();
         if (fb == NULL)
@@ -219,6 +234,8 @@ static void qrScannerTask(void *parameters)
             int decoded_num = esp_code_scanner_scan_image(esp_scn, img_buffer.data);
             if (decoded_num)
             {
+                time_start = xTaskGetTickCount();
+
                 esp_code_scanner_symbol_t result = esp_code_scanner_result(esp_scn);
                 if (result.data != NULL && strlen(result.data) > 0)
                 {
@@ -240,6 +257,14 @@ static void qrScannerTask(void *parameters)
 
         esp_camera_fb_return(fb);
         vTaskDelay(pdMS_TO_TICKS(5));
+
+        if ((xTaskGetTickCount() - time_start) * portTICK_PERIOD_MS > LOCK_SCREEN_TIMEOUT_MS)
+        {
+            // lock screen
+            time_start = xTaskGetTickCount();
+            scan_task_status_request = false;
+            lv_async_call(ctrl_home_lock_screen, NULL);
+        }
     }
 
     if (!scan_success)
@@ -265,21 +290,66 @@ static void qrScannerTask(void *parameters)
         line_buf = NULL;
     }
     esp_camera_deinit();
+    scan_task_status = false;
     vTaskDelete(NULL);
+}
+static void global_touch_event_handler(lv_event_t *e)
+{
+    if (scan_task_status)
+    {
+        return;
+    }
+    if (lock_screen_timer == NULL)
+    {
+        ESP_LOGE(TAG, "lock_screen_timer is NULL");
+        return;
+    }
+    lv_event_code_t code = lv_event_get_code(e);
+
+    if (code == LV_EVENT_DRAW_POST || code == LV_EVENT_GET_SELF_SIZE)
+    {
+        if (xTimerReset(lock_screen_timer, 0) != pdPASS)
+        {
+            ESP_LOGE(TAG, "Failed to reset lock screen timer");
+        }
+    }
+}
+static void lock_screen_timeout_callback(TimerHandle_t xTimer)
+{
+    ESP_LOGI(TAG, "lock_screen_timeout_callback");
+    ctrl_home_lock_screen();
 }
 
 /**********************
  *   GLOBAL FUNCTIONS
  **********************/
-void ctrl_home_init(char *privateKeyStr, int *_flag)
+void ctrl_home_init(char *privateKeyStr)
 {
-    flag = _flag;
-    *flag = 0;
+    scan_task_status_request = false;
+    scan_task_status = false;
     wallet = wallet_init_from_xprv(privateKeyStr);
-    ui_home_init(flag);
+    ui_home_init();
+
+    wallet_data_version_1_t walletData;
+    wallet_db_load_wallet_data(&walletData);
+    uint32_t LOCK_SCREEN_TIMEOUT_MS = walletData.lockScreenTimeout;
+    lock_screen_timer = xTimerCreate("LockScreenTimer", pdMS_TO_TICKS(LOCK_SCREEN_TIMEOUT_MS), pdFALSE, NULL, lock_screen_timeout_callback);
+    if (lock_screen_timer == NULL)
+    {
+        ESP_LOGE(TAG, "Lock screen timer create failed");
+    }
+    // global event
+    lv_obj_add_event_cb(lv_scr_act(), global_touch_event_handler, LV_EVENT_DRAW_POST, NULL);
+    lv_obj_add_event_cb(lv_scr_act(), global_touch_event_handler, LV_EVENT_GET_SELF_SIZE, NULL);
+    xTimerStart(lock_screen_timer, 0);
 }
 void ctrl_home_destroy(void)
 {
+    scan_task_status_request = false;
+    while (scan_task_status)
+    {
+        vTaskDelay(pdMS_TO_TICKS(5));
+    }
     ui_home_destroy();
     if (wallet != NULL)
     {
@@ -292,7 +362,6 @@ void ctrl_home_destroy(void)
         ctrl_home_network_data_t *network_next;
         while (network_current != NULL)
         {
-            ESP_LOGI(TAG, "free network_current:%s", network_current->name);
             network_next = network_current->next;
             // free current
             wallet_free(network_current->wallet_current);
@@ -306,14 +375,12 @@ void ctrl_home_destroy(void)
                     ctrl_home_3rd_wallet_info_t *wallet_info_3rd_next;
                     while (wallet_info_3rd_current != NULL)
                     {
-                        ESP_LOGI(TAG, "free wallet_info_3rd:%s", wallet_info_3rd_current->name);
                         wallet_info_3rd_next = wallet_info_3rd_current->next;
                         // ESP_LOG_BUFFER_HEXDUMP(TAG, wallet_info_3rd_current, sizeof(ctrl_home_3rd_wallet_info_t), ESP_LOG_INFO);
                         free(wallet_info_3rd_current);
                         wallet_info_3rd_current = wallet_info_3rd_next;
                     }
                 }
-                ESP_LOGI(TAG, "free compatible_wallet_group");
                 free(compatible_wallet_group);
             }
             free(network_current);
@@ -321,6 +388,14 @@ void ctrl_home_destroy(void)
         }
 
         network_data = NULL;
+    }
+    if (lock_screen_timer != NULL)
+    {
+        lv_obj_remove_event_cb(lv_scr_act(), global_touch_event_handler); // remove LV_EVENT_GET_SELF_SIZE
+        lv_obj_remove_event_cb(lv_scr_act(), global_touch_event_handler); // remove LV_EVENT_DRAW_POST
+        xTimerStop(lock_screen_timer, 0);
+        xTimerDelete(lock_screen_timer, 0);
+        lock_screen_timer = NULL;
     }
 }
 
@@ -446,10 +521,14 @@ char *ctrl_home_get_connect_qrcode(ctrl_home_network_data_t *network, ctrl_home_
 /* scanner page */
 void ctrl_home_scan_qr_start(lv_obj_t *image)
 {
-    scan_task_running = true;
+    scan_task_status_request = true;
     xTaskCreatePinnedToCore(qrScannerTask, "qrScannerTask", 4 * 1024, image, 10, NULL, MCU_CORE1);
 }
 void ctrl_home_scan_qr_stop(void)
 {
-    scan_task_running = false;
+    scan_task_status_request = false;
+}
+void ctrl_home_lock_screen(void)
+{
+    xEventGroupSetBits(event_group_global, EVENT_LOCK_SCREEN);
 }

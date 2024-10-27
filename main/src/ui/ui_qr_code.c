@@ -22,40 +22,17 @@ static ui_master_page_t *master_page = NULL;
 /**********************
  *  STATIC PROTOTYPES
  **********************/
-static void ui_qr_code_destroy(void *arg);
 static void ui_event_handler(lv_event_t *e);
 
 /**********************
  * GLOBAL PROTOTYPES
  **********************/
 void ui_qr_code_init(char *title, char *text_pre, char *qr_code, char *text_post);
+void ui_qr_code_destroy(void);
 
 /**********************
  *   STATIC FUNCTIONS
  **********************/
-static void ui_qr_code_destroy(void *arg)
-{
-    if (lvgl_port_lock(0))
-    {
-        if (container != NULL)
-        {
-            lv_obj_del(container);
-            container = NULL;
-        }
-        if (event_target != NULL)
-        {
-            lv_obj_del(event_target);
-            event_target = NULL;
-        }
-        lvgl_port_unlock();
-    }
-    if (master_page != NULL)
-    {
-        ui_master_page_destroy(master_page);
-        free(master_page);
-        master_page = NULL;
-    }
-}
 static void ui_event_handler(lv_event_t *e)
 {
     lv_event_code_t code = lv_event_get_code(e);
@@ -126,5 +103,28 @@ void ui_qr_code_init(char *title, char *text_pre, char *qr_code, char *text_post
             lv_obj_center(label);
         }
         lvgl_port_unlock();
+    }
+}
+void ui_qr_code_destroy()
+{
+    if (lvgl_port_lock(0))
+    {
+        if (container != NULL)
+        {
+            lv_obj_del(container);
+            container = NULL;
+        }
+        if (event_target != NULL)
+        {
+            lv_obj_del(event_target);
+            event_target = NULL;
+        }
+        lvgl_port_unlock();
+    }
+    if (master_page != NULL)
+    {
+        ui_master_page_destroy(master_page);
+        free(master_page);
+        master_page = NULL;
     }
 }

@@ -19,6 +19,8 @@
 #include "ui/ui_connect_qrcode.h"
 #include "ui/ui_style.h"
 #include "ui/ui_qr_code.h"
+#include "controller/ctrl_init.h"
+#include "freertos/FreeRTOS.h"
 
 /*********************
  *      DEFINES
@@ -63,12 +65,12 @@ static lv_obj_t *tv = NULL;
 static lv_obj_t *preview_image = NULL;
 static lv_obj_t *incorrect_pin_count_max_dd = NULL;
 static alloc_utils_memory_struct *alloc_utils_memory_struct_pointer;
-static int *flag = NULL;
 static ui_master_page_t *sub_master_page = NULL;
 static pin_verify_post_action_t pin_verify_post_action;
 static settings_action_data_t *settings_action_tmp_1 = NULL;
 static settings_action_data_t *settings_action_tmp_2 = NULL;
 static char temp[64];
+static lv_obj_t *erase_msgbox = NULL;
 
 /**********************
  *  STATIC PROTOTYPES
@@ -84,7 +86,7 @@ static char *verify_pin(char *pin_str);
 /**********************
  * GLOBAL PROTOTYPES
  **********************/
-void ui_home_init(int *_flag);
+void ui_home_init(void);
 void ui_home_destroy(void);
 void ui_home_start_qr_scan(void);
 void ui_home_stop_qr_scan(void);
@@ -112,24 +114,20 @@ static void wallet_list_item_event_handler(lv_event_t *e)
         }
         else
         {
-            ui_connect_qrcode(network_data);
+            ui_connect_qrcode_init(network_data);
         }
     }
 }
 static void create_tab_wallet(lv_obj_t *parent)
 {
-    lv_obj_set_style_border_width(parent, 0, 0);
-    lv_obj_set_style_pad_all(parent, 0, 0);
-    lv_obj_set_style_margin_all(parent, 0, 0);
+    NO_BODER_PADDING_STYLE(parent);
     // lv_obj_set_scroll_dir(parent, LV_DIR_NONE);
 
     int parent_width = lv_obj_get_width(parent);
     lv_obj_t *list = lv_list_create(parent);
-    lv_obj_set_style_pad_all(list, 0, 0);
-    lv_obj_set_style_margin_all(list, 0, 0);
+    NO_BODER_PADDING_STYLE(list);
     lv_obj_set_style_margin_top(list, 3, 0);
     lv_obj_set_style_margin_bottom(list, 3, 0);
-    lv_obj_set_style_border_width(list, 0, 0);
     lv_obj_set_scroll_dir(list, LV_DIR_VER);
 
     // NO_BODER_PADDING_STYLE(list);
@@ -238,9 +236,7 @@ static void create_tab_wallet(lv_obj_t *parent)
 }
 static void create_tab_scanner(lv_obj_t *parent)
 {
-    lv_obj_set_style_border_width(parent, 0, 0);
-    lv_obj_set_style_pad_all(parent, 0, 0);
-    lv_obj_set_style_margin_all(parent, 0, 0);
+    NO_BODER_PADDING_STYLE(parent);
 
     preview_image = lv_image_create(parent);
     lv_obj_center(preview_image);
@@ -248,15 +244,10 @@ static void create_tab_scanner(lv_obj_t *parent)
 }
 static void create_tab_settings(lv_obj_t *parent)
 {
-    lv_obj_set_style_border_width(parent, 0, 0);
-    lv_obj_set_style_pad_all(parent, 0, 0);
-    lv_obj_set_style_margin_all(parent, 0, 0);
+    NO_BODER_PADDING_STYLE(parent);
 
     lv_obj_t *list = lv_list_create(parent);
-    lv_obj_set_style_pad_all(list, 0, 0);
-    lv_obj_set_style_margin_all(list, 0, 0);
-    lv_obj_set_style_margin_top(list, 0, 0);
-    lv_obj_set_style_margin_bottom(list, 0, 0);
+    NO_BODER_PADDING_STYLE(list);
     lv_obj_set_scroll_dir(list, LV_DIR_VER);
 
     lv_obj_set_size(list, lv_pct(100), lv_pct(100));
@@ -348,7 +339,6 @@ static void lv_tabview_event_handler(lv_event_t *e)
 static void ui_event_handler(lv_event_t *e)
 {
     lv_event_code_t code = lv_event_get_code(e);
-    ESP_LOGI(TAG, "ui_event_handler code: %d", code);
     if (code == LV_EVENT_CLICKED)
     {
         settings_action_data_t *ui_action = (settings_action_data_t *)lv_event_get_user_data(e);
@@ -358,27 +348,26 @@ static void ui_event_handler(lv_event_t *e)
         }
         if (ui_action->action == SETTINGS_ACTION_LOCK_NOW)
         {
-            *flag = 1;
+            ctrl_home_lock_screen();
         }
         else if (ui_action->action == SETTINGS_ACTION_ERASE_ALL_DATA)
         {
 
             if (lvgl_port_lock(0))
             {
-                lv_obj_t *mbox1 = lv_msgbox_create(NULL);
-                lv_msgbox_add_title(mbox1, "Erase");
-                lv_msgbox_add_text(mbox1, "All data will be erased.");
-                lv_obj_set_size(mbox1, lv_pct(100), LV_SIZE_CONTENT);
-                lv_msgbox_add_close_button(mbox1);
+                erase_msgbox = lv_msgbox_create(NULL);
+                lv_msgbox_add_title(erase_msgbox, "Erase");
+                lv_msgbox_add_text(erase_msgbox, "All data will be erased.");
+                lv_obj_set_size(erase_msgbox, lv_pct(100), LV_SIZE_CONTENT);
                 lv_obj_t *btn;
-                btn = lv_msgbox_add_footer_button(mbox1, "Erase");
+                btn = lv_msgbox_add_footer_button(erase_msgbox, "Erase");
                 if (settings_action_tmp_1 == NULL)
                 {
                     ALLOC_UTILS_MALLOC_MEMORY(alloc_utils_memory_struct_pointer, settings_action_tmp_1, sizeof(settings_action_data_t));
                 }
                 settings_action_tmp_1->action = SETTINGS_ACTION_ERASE_ALL_DATA_CONFIRM;
                 lv_obj_add_event_cb(btn, ui_event_handler, LV_EVENT_CLICKED, settings_action_tmp_1);
-                btn = lv_msgbox_add_footer_button(mbox1, "Cancel");
+                btn = lv_msgbox_add_footer_button(erase_msgbox, "Cancel");
 
                 if (settings_action_tmp_2 == NULL)
                 {
@@ -395,9 +384,8 @@ static void ui_event_handler(lv_event_t *e)
             /* close message box */
             if (lvgl_port_lock(0))
             {
-                lv_obj_t *mbox_btn = lv_event_get_target(e);
-                lv_obj_t *mbox = lv_obj_get_parent(lv_obj_get_parent(mbox_btn));
-                lv_msgbox_close(mbox);
+                lv_msgbox_close(erase_msgbox);
+                erase_msgbox = NULL;
 
                 lvgl_port_unlock();
             }
@@ -424,9 +412,9 @@ static void ui_event_handler(lv_event_t *e)
             /* close message box */
             if (lvgl_port_lock(0))
             {
-                lv_obj_t *mbox_btn = lv_event_get_target(e);
-                lv_obj_t *mbox = lv_obj_get_parent(lv_obj_get_parent(mbox_btn));
-                lv_msgbox_close(mbox);
+                lv_msgbox_close(erase_msgbox);
+                erase_msgbox = NULL;
+                ESP_LOGI(TAG, "erase_msgbox closed");
 
                 lvgl_port_unlock();
             }
@@ -546,17 +534,13 @@ static char *verify_pin(char *pin_str)
 /**********************
  *   GLOBAL FUNCTIONS
  **********************/
-void ui_home_init(int *_flag)
+void ui_home_init(void)
 {
-    flag = _flag;
-
     ui_init_events();
 
     ALLOC_UTILS_INIT_MEMORY_STRUCT(alloc_utils_memory_struct_pointer);
-
     if (lvgl_port_lock(0))
     {
-
         tv = lv_tabview_create(lv_scr_act());
 
         /* sub master page event listener */
@@ -609,10 +593,9 @@ void ui_home_destroy(void)
         }
         lvgl_port_unlock();
     }
-    if (alloc_utils_memory_struct_pointer != NULL)
-    {
-        ALLOC_UTILS_FREE_MEMORY(alloc_utils_memory_struct_pointer);
-    }
+
+    ALLOC_UTILS_FREE_MEMORY(alloc_utils_memory_struct_pointer);
+
     settings_action_tmp_1 = NULL;
     settings_action_tmp_2 = NULL;
     if (sub_master_page != NULL)
@@ -620,6 +603,20 @@ void ui_home_destroy(void)
         ui_master_page_destroy(sub_master_page);
         free(sub_master_page);
         sub_master_page = NULL;
+    }
+
+    ui_qr_code_destroy();
+    ui_pin_destroy();
+    ui_connect_qrcode_destroy();
+
+    if (erase_msgbox != NULL)
+    {
+        if (lvgl_port_lock(0))
+        {
+            lv_msgbox_close(erase_msgbox);
+            lvgl_port_unlock();
+        }
+        erase_msgbox = NULL;
     }
 }
 void ui_home_start_qr_scan(void)

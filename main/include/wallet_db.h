@@ -21,6 +21,7 @@ typedef struct __attribute__((aligned(4)))
     bool initialized;
     uint8_t incorrectPinCount;
     uint8_t incorrectPinCountMax;
+    uint32_t lockScreenTimeout;
     bool signPinRequired;
     uint8_t pinPadding[32];
     char privateKey[PRIVATE_KEY_SIZE];

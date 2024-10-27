@@ -3,6 +3,7 @@
  *********************/
 #include "ui/ui_master_page.h"
 #include "string.h"
+#include "ui/ui_style.h"
 
 /*********************
  *      DEFINES
@@ -93,8 +94,7 @@ void ui_master_page_init(lv_obj_t *parent, lv_obj_t *event_target, bool back_but
     {
         ui_master_page->master_page = lv_obj_create(screen);
         lv_obj_set_size(ui_master_page->master_page, screen_width, screen_height);
-        lv_obj_set_style_pad_all(ui_master_page->master_page, 0, 0);
-        lv_obj_set_style_border_width(ui_master_page->master_page, 0, 0);
+        NO_BODER_PADDING_STYLE(ui_master_page->master_page);
 
         /* header */
 
@@ -110,9 +110,7 @@ void ui_master_page_init(lv_obj_t *parent, lv_obj_t *event_target, bool back_but
         lv_obj_set_size(back_btn, title_btn_width, HEADER_HEIGHT);
         lv_obj_set_pos(back_btn, 0, 0);
         lv_obj_set_style_radius(back_btn, 0, 0);
-        lv_obj_set_style_border_width(back_btn, 0, 0);
-        lv_obj_set_style_margin_all(back_btn, 0, 0);
-        lv_obj_set_style_pad_all(back_btn, 0, 0);
+        NO_BODER_PADDING_STYLE(back_btn);
         lv_obj_set_style_align(back_lab, LV_ALIGN_CENTER, 0);
         ui_master_page->back_button = back_btn;
         lv_obj_add_event_cb(back_btn, back_event_handler, LV_EVENT_CLICKED, ui_master_page);
@@ -141,16 +139,13 @@ void ui_master_page_init(lv_obj_t *parent, lv_obj_t *event_target, bool back_but
         lv_obj_t *close_btn = lv_button_create(ui_master_page->master_page);
         // lv_obj_set_style_bg_color(close_btn, lv_color_hex(0x2E4800), 0);
         lv_obj_set_style_bg_color(close_btn, lv_color_hex(0xFAEA00), 0);
-        lv_obj_t *close_lab = lv_label_create(close_btn); 
+        lv_obj_t *close_lab = lv_label_create(close_btn);
         lv_label_set_text(close_lab, "X");
         lv_obj_set_style_text_color(close_lab, lv_color_hex(0x000000), 0);
         // lv_obj_set_style_bg_opa(close_btn, LV_OPA_TRANSP, 0);
         // lv_obj_set_style_shadow_width(close_btn, 0, 0);
         lv_obj_set_size(close_btn, title_btn_width, HEADER_HEIGHT);
-        lv_obj_set_style_radius(close_btn, 0, 0);
-        lv_obj_set_style_border_width(close_btn, 0, 0);
-        lv_obj_set_style_margin_all(close_btn, 0, 0);
-        lv_obj_set_style_pad_all(close_btn, 0, 0);
+        NO_BODER_PADDING_STYLE(close_btn);
         lv_obj_set_style_align(close_lab, LV_ALIGN_CENTER, 0);
         lv_obj_set_pos(close_btn, screen_width - title_btn_width, 0);
         ui_master_page->close_button = close_btn;
@@ -166,10 +161,7 @@ void ui_master_page_init(lv_obj_t *parent, lv_obj_t *event_target, bool back_but
         ui_master_page->container_height = content_height;
         lv_obj_set_size(ui_master_page->container, screen_width, content_height);
         lv_obj_set_pos(ui_master_page->container, 0, HEADER_HEIGHT);
-        lv_obj_set_style_margin_all(ui_master_page->container, 0, 0);
-        lv_obj_set_style_pad_all(ui_master_page->container, 0, 0);
-        lv_obj_set_style_radius(ui_master_page->container, 0, 0);
-        lv_obj_set_style_border_width(ui_master_page->container, 0, 0);
+        NO_BODER_PADDING_STYLE(ui_master_page->container);
 
         lvgl_port_unlock();
     }

@@ -15,17 +15,6 @@
  *      DEFINES
  *********************/
 #define TAG "UI_DECODER"
-/**********************
- *      TYPEDEFS
- **********************/
-
-/**********************
- *      MACROS
- **********************/
-
-/**********************
- *      VARIABLES
- **********************/
 
 /**********************
  *  STATIC VARIABLES
@@ -43,13 +32,13 @@ static int32_t container_height = 0;
  *  STATIC PROTOTYPES
  **********************/
 static void ui_event_handler(lv_event_t *e);
-static void ui_decoder_destroy(void *arg);
 static char *verify_pin(char *pin_str);
 
 /**********************
  * GLOBAL PROTOTYPES
  **********************/
 void ui_decoder_init(Wallet *_wallet, qrcode_protocol_bc_ur_data_t *_qrcode_protocol_bc_ur_data, lv_obj_t *event_target);
+void ui_decoder_destroy(void);
 
 /**********************
  *   STATIC FUNCTIONS
@@ -95,36 +84,10 @@ static char *verify_pin(char *pin_str)
     }
     return ret;
 }
-static void ui_decoder_destroy(void *arg)
-{
-    wallet = NULL;
-    qrcode_protocol_bc_ur_data = NULL;
-
-    ui_pin_destroy();
-
-    if (lvgl_port_lock(0))
-    {
-        if (container != NULL)
-        {
-            lv_obj_del(container);
-            container = NULL;
-        }
-        lvgl_port_unlock();
-    }
-
-    ui_master_page_destroy(master_page);
-
-    if (alloc_utils_memory_struct_pointer != NULL)
-    {
-        ALLOC_UTILS_FREE_MEMORY(alloc_utils_memory_struct_pointer);
-    }
-    master_page = NULL;
-}
 
 /**********************
  *   GLOBAL FUNCTIONS
  **********************/
-
 void ui_decoder_init(Wallet *_wallet, qrcode_protocol_bc_ur_data_t *_qrcode_protocol_bc_ur_data, lv_obj_t *_event_target)
 {
     ui_init_events();
@@ -172,4 +135,27 @@ void ui_decoder_init(Wallet *_wallet, qrcode_protocol_bc_ur_data_t *_qrcode_prot
         lv_obj_add_event_cb(obj, ui_event_handler, LV_EVENT_CLICKED, NULL);
     }
     lvgl_port_unlock();
+}
+void ui_decoder_destroy()
+{
+    wallet = NULL;
+    qrcode_protocol_bc_ur_data = NULL;
+
+    ui_pin_destroy();
+
+    if (lvgl_port_lock(0))
+    {
+        if (container != NULL)
+        {
+            lv_obj_del(container);
+            container = NULL;
+        }
+        lvgl_port_unlock();
+    }
+
+    ui_master_page_destroy(master_page);
+
+    ALLOC_UTILS_FREE_MEMORY(alloc_utils_memory_struct_pointer);
+
+    master_page = NULL;
 }

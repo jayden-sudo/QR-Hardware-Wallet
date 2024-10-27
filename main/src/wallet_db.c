@@ -17,6 +17,7 @@
  *      DEFINES
  *********************/
 #define DEFAULT_INCORRECT_PIN_COUNT 5
+#define LOCK_SCREEN_TIMEOUT_MS 1000 * 60 * 5 // 5m
 #define SIGN_PIN_REQUIRED true
 #define VERSION 1
 
@@ -223,6 +224,7 @@ bool wallet_db_init_wallet_data(char *phrase_str, char *pin_str, char **private_
     walletData->version = VERSION;
     walletData->incorrectPinCount = 0;
     walletData->incorrectPinCountMax = DEFAULT_INCORRECT_PIN_COUNT;
+    walletData->lockScreenTimeout = LOCK_SCREEN_TIMEOUT_MS;
     wallet_db_save_wallet_data(walletData);
     // read from storage test
     wallet_data_version_1_t *walletData_read = malloc(sizeof(wallet_data_version_1_t));

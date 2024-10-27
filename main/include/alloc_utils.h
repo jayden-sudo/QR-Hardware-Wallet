@@ -42,16 +42,19 @@ typedef struct
             exit(EXIT_FAILURE);                                                                                                 \
     } while (0);
 
-#define ALLOC_UTILS_FREE_MEMORY(alloc_utils_memory_struct_pointer)                      \
-    do                                                                                  \
-    {                                                                                   \
-        for (size_t i = 0; i < alloc_utils_memory_struct_pointer->allocated_count; i++) \
-        {                                                                               \
-            free(alloc_utils_memory_struct_pointer->allocated_memory[i]);               \
-        }                                                                               \
-        free(alloc_utils_memory_struct_pointer->allocated_memory);                      \
-        free(alloc_utils_memory_struct_pointer);                                        \
-        alloc_utils_memory_struct_pointer = NULL;                                       \
+#define ALLOC_UTILS_FREE_MEMORY(alloc_utils_memory_struct_pointer)                          \
+    do                                                                                      \
+    {                                                                                       \
+        if (alloc_utils_memory_struct_pointer != NULL)                                      \
+        {                                                                                   \
+            for (size_t i = 0; i < alloc_utils_memory_struct_pointer->allocated_count; i++) \
+            {                                                                               \
+                free(alloc_utils_memory_struct_pointer->allocated_memory[i]);               \
+            }                                                                               \
+            free(alloc_utils_memory_struct_pointer->allocated_memory);                      \
+            free(alloc_utils_memory_struct_pointer);                                        \
+            alloc_utils_memory_struct_pointer = NULL;                                       \
+        }                                                                                   \
     } while (0);
 
 #endif /* ALLOC_UTILS_H */

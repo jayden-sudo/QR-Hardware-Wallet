@@ -71,8 +71,9 @@ extern "C"
     /**********************
      * GLOBAL PROTOTYPES
      **********************/
-    void ctrl_home_init(char *privateKeyStr, int *flag);
+    void ctrl_home_init(char *privateKeyStr);
     void ctrl_home_destroy(void);
+    void ctrl_home_lock_screen(void);
 
     /* wallet page */
     ctrl_home_network_data_t *ctrl_home_list_networks(void);

@@ -7,6 +7,7 @@
 #include <string.h>
 #include "esp_log.h"
 #include "wallet_db.h"
+#include "ui/ui_style.h"
 
 /*********************
  *      DEFINES
@@ -187,16 +188,12 @@ static void create_pin_input_page()
     row_dsc[3] = LV_GRID_TEMPLATE_LAST;
 
     current_page = lv_obj_create(parent);
+    NO_BODER_PADDING_STYLE(current_page);
     lv_obj_set_scroll_dir(current_page, LV_DIR_NONE);
     lv_obj_set_style_grid_column_dsc_array(current_page, col_dsc, 0);
     lv_obj_set_style_grid_row_dsc_array(current_page, row_dsc, 0);
     lv_obj_set_size(current_page, parent_width, parent_height);
     lv_obj_set_layout(current_page, LV_LAYOUT_GRID);
-    lv_obj_set_style_margin_all(current_page, 0, 0);
-    lv_obj_set_style_outline_width(current_page, 0, 0);
-    lv_obj_set_style_radius(current_page, 0, 0);
-    lv_obj_set_style_pad_all(current_page, 0, 0);
-    lv_obj_set_style_border_width(current_page, 0, 0);
 
     /* msg */
     lv_msg = lv_label_create(current_page);
@@ -224,15 +221,12 @@ static void create_pin_input_page()
     row_circle_dsc[1] = LV_GRID_TEMPLATE_LAST;
 
     lv_obj_t *input_circles = lv_obj_create(current_page);
+    NO_BODER_PADDING_STYLE(input_circles);
     lv_obj_set_style_grid_column_dsc_array(input_circles, col_circle_dsc, 0);
     lv_obj_set_style_grid_row_dsc_array(input_circles, row_circle_dsc, 0);
     lv_obj_set_layout(input_circles, LV_LAYOUT_GRID);
     lv_obj_set_style_pad_column(input_circles, 0, 0);
     lv_obj_set_size(input_circles, parent_width, LV_SIZE_CONTENT);
-    lv_obj_set_style_border_width(input_circles, 0, 0);
-    lv_obj_set_style_radius(input_circles, 0, 0);
-    lv_obj_set_style_pad_all(input_circles, 0, 0);
-    lv_obj_set_style_margin_all(input_circles, 0, 0);
 
     /* 6 LED */
     {
@@ -262,12 +256,7 @@ static void create_pin_input_page()
 
     /* keyboard */
     lv_obj_t *btnm = lv_buttonmatrix_create(current_page);
-
-    lv_obj_set_style_border_width(btnm, 0, 0);
-    lv_obj_set_style_radius(btnm, 0, 0);
-    lv_obj_set_style_outline_width(btnm, 0, 0);
-    lv_obj_set_style_pad_all(btnm, 0, 0);
-    lv_obj_set_style_margin_all(btnm, 0, 0);
+    NO_BODER_PADDING_STYLE(btnm);
 
     // lv_obj_set_style_bg_color(btnm, lv_color_hex(0xf000f0), 0);
     lv_buttonmatrix_set_map(btnm, btnm_map);
@@ -426,10 +415,10 @@ void ui_pin_destroy(void)
             lvgl_port_unlock();
         }
 
-        ALLOC_UTILS_FREE_MEMORY(alloc_utils_memory_struct_pointer);
-
         current_page = NULL;
         lv_msg = NULL;
         leds = NULL;
     }
+
+    ALLOC_UTILS_FREE_MEMORY(alloc_utils_memory_struct_pointer);
 }

@@ -9,6 +9,7 @@
 #include "ui/ui_events.h"
 #include "alloc_utils.h"
 #include "esp_log.h"
+#include "ui/ui_style.h"
 
 /*********************
  *      DEFINES
@@ -391,9 +392,7 @@ void ui_mnemonic_init(lv_obj_t *lv_parent, size_t parent_width, size_t parent_he
         lv_obj_set_size(current_page, parent_width, parent_height);
         lv_obj_set_layout(current_page, LV_LAYOUT_GRID);
         // lv_obj_set_style_bg_color(current_page, lv_color_hex(0x00ff00), 0);
-        lv_obj_set_style_margin_all(current_page, 0, 0);
-        lv_obj_set_style_radius(current_page, 0, 0);
-        lv_obj_set_style_pad_all(current_page, 0, 0);
+        NO_BODER_PADDING_STYLE(current_page);
 
         /* content */
         content = lv_obj_create(current_page);
@@ -413,11 +412,7 @@ void ui_mnemonic_init(lv_obj_t *lv_parent, size_t parent_width, size_t parent_he
         /* words */
         words = lv_obj_create(current_page);
 
-        lv_obj_set_style_border_width(words, 0, 0);
-        lv_obj_set_style_radius(words, 0, 0);
-        lv_obj_set_style_outline_width(words, 0, 0);
-        lv_obj_set_style_pad_all(words, 0, 0);
-        lv_obj_set_style_margin_all(words, 0, 0);
+        NO_BODER_PADDING_STYLE(words);
 
         lv_obj_set_size(words, lv_pct(100), lv_pct(100));
         lv_obj_align(words, LV_ALIGN_TOP_MID, 0, 5);
@@ -432,12 +427,7 @@ void ui_mnemonic_init(lv_obj_t *lv_parent, size_t parent_width, size_t parent_he
 
         keyboard = lv_btnmatrix_create(current_page);
         lv_btnmatrix_set_map(keyboard, btnm_map);
-
-        lv_obj_set_style_border_width(keyboard, 0, 0);
-        lv_obj_set_style_radius(keyboard, 0, 0);
-        lv_obj_set_style_outline_width(keyboard, 0, 0);
-        lv_obj_set_style_pad_all(keyboard, 0, 0);
-        lv_obj_set_style_margin_all(keyboard, 0, 0);
+        NO_BODER_PADDING_STYLE(keyboard);
 
         lv_buttonmatrix_set_button_width(keyboard, 26, 2); /*Make "DEL" *2 wide*/
         lv_obj_align(keyboard, LV_ALIGN_BOTTOM_MID, 0, 0);
@@ -458,15 +448,18 @@ void ui_mnemonic_init(lv_obj_t *lv_parent, size_t parent_width, size_t parent_he
 
 void ui_mnemonic_destroy(void)
 {
-    if (lvgl_port_lock(0))
+    if (current_page != NULL)
     {
-        lv_obj_del(current_page);
-        lvgl_port_unlock();
+        if (lvgl_port_lock(0))
+        {
+            lv_obj_del(current_page);
+            lvgl_port_unlock();
+        }
+        current_page = NULL;
     }
     ALLOC_UTILS_FREE_MEMORY(alloc_utils_memory_struct_pointer);
 
     phrases = NULL;
-    current_page = NULL;
     content = NULL;
     keyboard = NULL;
     words = NULL;

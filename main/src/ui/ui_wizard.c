@@ -11,6 +11,7 @@
 #include "ui/ui_panic.h"
 #include "wallet_db.h"
 #include "ui/ui_toast.h"
+#include "ui/ui_style.h"
 
 /*********************
  *      DEFINES
@@ -45,18 +46,6 @@ typedef struct
     tab_action_t tab_action;
     void *parameter;
 } tab_data_t;
-
-/**********************
- *      MACROS
- **********************/
-#define NO_PADDING(obj)                           \
-    do                                            \
-    {                                             \
-        lv_obj_set_style_margin_all(obj, 0, 0);   \
-        lv_obj_set_style_pad_all(obj, 0, 0);      \
-        lv_obj_set_style_radius(obj, 0, 0);       \
-        lv_obj_set_style_border_width(obj, 0, 0); \
-    } while (0);
 
 /**********************
  *  STATIC VARIABLES
@@ -224,9 +213,9 @@ static void init_tab_language(void)
     /* tab_language */
     lv_obj_t *div = lv_obj_create(tab_language);
     lv_obj_set_size(div, container_width, container_height);
-    NO_PADDING(div);
+    NO_BODER_PADDING_STYLE(div);
     lv_obj_t *cont_col = lv_obj_create(div);
-    NO_PADDING(cont_col);
+    NO_BODER_PADDING_STYLE(cont_col);
     lv_obj_set_style_pad_bottom(cont_col, 20, 0);
     lv_obj_set_style_pad_top(cont_col, 20, 0);
 
@@ -257,7 +246,7 @@ static void init_tab_warning_message(void)
     lv_obj_set_size(cont, container_width, container_height);
     lv_obj_center(cont);
     lv_obj_set_flex_flow(cont, LV_FLEX_FLOW_COLUMN);
-    NO_PADDING(cont);
+    NO_BODER_PADDING_STYLE(cont);
     lv_obj_t *label = lv_label_create(cont);
     lv_obj_set_style_margin_all(label, 10, 0);
     lv_obj_set_size(label, container_width * 0.9, LV_SIZE_CONTENT);
@@ -287,9 +276,9 @@ static void init_tab_choose_mnemonic_type(void)
     /* tab_choose_mnemonic_type */
     lv_obj_t *div = lv_obj_create(tab_choose_mnemonic_type);
     lv_obj_set_size(div, container_width, container_height);
-    NO_PADDING(div);
+    NO_BODER_PADDING_STYLE(div);
     lv_obj_t *cont_col = lv_obj_create(div);
-    NO_PADDING(cont_col);
+    NO_BODER_PADDING_STYLE(cont_col);
     lv_obj_set_style_pad_bottom(cont_col, 20, 0);
     lv_obj_set_style_pad_top(cont_col, 20, 0);
 
@@ -332,7 +321,7 @@ static void init_tab_done(void)
     lv_obj_set_size(cont, container_width, container_height);
     lv_obj_center(cont);
     lv_obj_set_flex_flow(cont, LV_FLEX_FLOW_COLUMN);
-    NO_PADDING(cont);
+    NO_BODER_PADDING_STYLE(cont);
     lv_obj_t *label = lv_label_create(cont);
     lv_obj_set_style_margin_all(label, 10, 0);
     lv_obj_set_size(label, container_width * 0.9, LV_SIZE_CONTENT);
@@ -393,24 +382,24 @@ void ui_wizard_init()
         ui_master_page_init(NULL, screen, false, false, tab_title_list[0], ui_master_page);
         container = ui_master_page_get_container(ui_master_page);
         tv = lv_tabview_create(container);
-        NO_PADDING(tv);
+        NO_BODER_PADDING_STYLE(tv);
         tab_index = TAB_INDEX_CHOOSE_LANGUAGE;
         ui_master_page_get_container_size(ui_master_page, &container_width, &container_height);
         lv_obj_set_size(tv, container_width, container_height);
         // lv_tabview_set_tab_bar_position(tv, LV_DIR_BOTTOM);
         lv_tabview_set_tab_bar_size(tv, 0);
         tab_language = lv_tabview_add_tab(tv, NULL);
-        NO_PADDING(tab_language);
+        NO_BODER_PADDING_STYLE(tab_language);
         tab_warning_message = lv_tabview_add_tab(tv, NULL);
-        NO_PADDING(tab_warning_message);
+        NO_BODER_PADDING_STYLE(tab_warning_message);
         tab_choose_mnemonic_type = lv_tabview_add_tab(tv, NULL);
-        NO_PADDING(tab_choose_mnemonic_type);
+        NO_BODER_PADDING_STYLE(tab_choose_mnemonic_type);
         tab_enter_mnemonic = lv_tabview_add_tab(tv, NULL);
-        NO_PADDING(tab_enter_mnemonic);
+        NO_BODER_PADDING_STYLE(tab_enter_mnemonic);
         tab_enter_pin = lv_tabview_add_tab(tv, NULL);
-        NO_PADDING(tab_enter_pin);
+        NO_BODER_PADDING_STYLE(tab_enter_pin);
         tab_done = lv_tabview_add_tab(tv, NULL);
-        NO_PADDING(tab_done);
+        NO_BODER_PADDING_STYLE(tab_done);
 
         init_tab_language();
         init_tab_warning_message();
@@ -432,10 +421,9 @@ void ui_wizard_destroy(void)
         ui_master_page = NULL;
         lvgl_port_unlock();
     }
-    if (alloc_utils_memory_struct_pointer != NULL)
-    {
-        ALLOC_UTILS_FREE_MEMORY(alloc_utils_memory_struct_pointer);
-    }
+
+    ALLOC_UTILS_FREE_MEMORY(alloc_utils_memory_struct_pointer);
+
     if (phrase_cache != NULL)
     {
         free(phrase_cache);

@@ -45,7 +45,6 @@ static ui_master_page_t *master_page = NULL;
 /**********************
  *  STATIC PROTOTYPES
  **********************/
-static void ui_connect_qr_destroy();
 static void ui_event_handler(lv_event_t *e);
 static void show_qrcode(ui_connect_qrcode_t *ui_connect_qrcode_data);
 static void hide_qrcode();
@@ -53,7 +52,8 @@ static void hide_qrcode();
 /**********************
  * GLOBAL PROTOTYPES
  **********************/
-void ui_connect_qrcode(ctrl_home_network_data_t *network_data);
+void ui_connect_qrcode_init(ctrl_home_network_data_t *network_data);
+void ui_connect_qrcode_destroy(void);
 
 /**********************
  *   STATIC FUNCTIONS
@@ -160,44 +160,14 @@ static void ui_event_handler(lv_event_t *e)
     else if (code == UI_EVENT_MASTER_PAGE_CLOSE_BUTTON_CLICKED)
     {
         ui_master_page_set_close_button_visibility(false, master_page);
-        lv_async_call(ui_connect_qr_destroy, NULL);
+        lv_async_call(ui_connect_qrcode_destroy, NULL);
     }
-}
-static void ui_connect_qr_destroy()
-{
-    if (lvgl_port_lock(0))
-    {
-        if (qrcode_container != NULL)
-        {
-            lv_obj_del(qrcode_container);
-            qrcode_container = NULL;
-        }
-        if (choose_wallet_container != NULL)
-        {
-            lv_obj_del(choose_wallet_container);
-            choose_wallet_container = NULL;
-        }
-        if (event_target != NULL)
-        {
-            lv_obj_del(event_target);
-            event_target = NULL;
-        }
-        lvgl_port_unlock();
-    }
-
-    ui_master_page_destroy(master_page);
-
-    if (alloc_utils_memory_struct_pointer != NULL)
-    {
-        ALLOC_UTILS_FREE_MEMORY(alloc_utils_memory_struct_pointer);
-    }
-    master_page = NULL;
 }
 
 /**********************
  *   GLOBAL FUNCTIONS
  **********************/
-void ui_connect_qrcode(ctrl_home_network_data_t *network_data)
+void ui_connect_qrcode_init(ctrl_home_network_data_t *network_data)
 {
     if (network_data == NULL)
     {
@@ -256,4 +226,33 @@ void ui_connect_qrcode(ctrl_home_network_data_t *network_data)
         }
         lvgl_port_unlock();
     }
+}
+void ui_connect_qrcode_destroy(void)
+{
+
+    if (lvgl_port_lock(0))
+    {
+        if (qrcode_container != NULL)
+        {
+            lv_obj_del(qrcode_container);
+            qrcode_container = NULL;
+        }
+        if (choose_wallet_container != NULL)
+        {
+            lv_obj_del(choose_wallet_container);
+            choose_wallet_container = NULL;
+        }
+        if (event_target != NULL)
+        {
+            lv_obj_del(event_target);
+            event_target = NULL;
+        }
+        lvgl_port_unlock();
+    }
+
+    ui_master_page_destroy(master_page);
+
+    ALLOC_UTILS_FREE_MEMORY(alloc_utils_memory_struct_pointer);
+
+    master_page = NULL;
 }

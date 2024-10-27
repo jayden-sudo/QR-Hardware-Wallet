@@ -17,6 +17,7 @@ extern "C"
      * GLOBAL PROTOTYPES
      **********************/
     void ui_decoder_init(Wallet *_wallet, qrcode_protocol_bc_ur_data_t *_qrcode_protocol_bc_ur_data, lv_obj_t *event_target);
+    void ui_decoder_destroy(void);
 
 #ifdef __cplusplus
     extern "C"

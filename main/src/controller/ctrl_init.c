@@ -20,6 +20,11 @@
  *********************/
 
 /**********************
+ *      VARIABLES
+ **********************/
+EventGroupHandle_t event_group_global;
+
+/**********************
  *  STATIC VARIABLES
  **********************/
 static const char *TAG = "ctrl_init";
@@ -42,6 +47,8 @@ void ctrl_init(void *parameters);
  **********************/
 void ctrl_init(void *parameters)
 {
+    event_group_global = xEventGroupCreate();
+
     while (1)
     {
         char *privateKeyStr = NULL;
@@ -52,8 +59,7 @@ void ctrl_init(void *parameters)
         }
         ctrl_wizard_destroy();
         /* show main page */
-        int home_flag = 0;
-        ctrl_home_init(privateKeyStr, &home_flag);
+        ctrl_home_init(privateKeyStr);
 
         // debug
         // TaskHandle_t lvgl_task_handle = __test_get_lvgl_task_handle();
@@ -70,9 +76,20 @@ void ctrl_init(void *parameters)
         //     }
         // }
 
-        while (home_flag == 0)
+        while (true)
         {
-            vTaskDelay(pdMS_TO_TICKS(10));
+            EventBits_t bits = xEventGroupWaitBits(
+                event_group_global,
+                EVENT_LOCK_SCREEN,
+                pdTRUE,
+                pdFALSE,
+                portMAX_DELAY);
+
+            if (bits & EVENT_LOCK_SCREEN)
+            {
+                // Lock screen
+                break;
+            }
         }
         ctrl_home_destroy();
         free(privateKeyStr);
