@@ -1,1 +1,1 @@
-Moved to: [https://github.com/QR-Hardware-Wallet/QR-Hardware-Wallet](https://github.com/QR-Hardware-Wallet/QR-Hardware-Wallet)
+Moved to: [https://github.com/BlockEase/QR-Hardware-Wallet](https://github.com/BlockEase/QR-Hardware-Wallet)
