@@ -1,0 +1,40 @@
+name: "🐛 Bug Report"
+description: "Report a software bug"
+title: "[Bug]"
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Describe the Bug**
+        Provide a clear description of the bug.
+
+  - type: input
+    id: affected_version
+    attributes:
+      label: "Affected Version"
+      placeholder: "e.g., Version/Release"
+  
+  - type: textarea
+    id: reproduction_steps
+    attributes:
+      label: "Steps to Reproduce"
+      description: "Steps to reproduce the bug."
+  
+  - type: textarea
+    id: expected_behavior
+    attributes:
+      label: "Expected Behavior"
+      description: "What you expected to happen."
+  
+  - type: textarea
+    id: screenshots_logs
+    attributes:
+      label: "Screenshots or Logs"
+      description: "Add screenshots or logs to explain the problem."
+  
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: "Additional Context"
+      description: "Any other relevant information."

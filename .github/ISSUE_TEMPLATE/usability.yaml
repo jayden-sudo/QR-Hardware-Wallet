@@ -1,0 +1,34 @@
+name: "🧩 Usability Issue"
+description: "Suggest improvements related to usability"
+title: "[Usability]"
+labels: ["usability"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Describe the Usability Issue**
+        Provide a summary of the issue with software usability.
+
+  - type: input
+    id: affected_version
+    attributes:
+      label: "Affected Version"
+      placeholder: "e.g., Version/Release"
+  
+  - type: textarea
+    id: improvement_steps
+    attributes:
+      label: "Steps to Improve Usability"
+      description: "Steps to reproduce the usability issue and suggested improvements."
+  
+  - type: textarea
+    id: expected_improvement
+    attributes:
+      label: "Expected Improvement"
+      description: "Describe the ideal behavior or improvement."
+  
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: "Additional Context"
+      description: "Screenshots or design suggestions."
